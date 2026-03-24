@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bank-Ready Score | Oney & Co</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #1A1A2E;
+  --card: #252540;
+  --border: #3D3D5C;
+  --green: #2ECC85;
+  --green-dark: #1FAD73;
+  --purple: #6B4C9A;
+  --muted: #a3a3b8;
+  --red: #E74C3C;
+  --orange: #E67E22;
+  --yellow: #F1C40F;
+  --gradient: linear-gradient(135deg, #2ECC85, #1FAD73);
+}
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: #e2e2e2;
+  min-height: 100vh;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+.container {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 24px 20px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+/* Logo */
+.logo { width: 140px; height: 60px; margin: 0 auto 16px; display: block; }
+/* Steps hidden by default */
+.step { display: none; flex-direction: column; flex: 1; }
+.step.active { display: flex; }
+
+/* ========== LANDING ========== */
+.landing { align-items: center; justify-content: center; text-align: center; }
+.landing h1 {
+  font-size: clamp(28px, 6vw, 42px);
+  font-weight: 800;
+  line-height: 1.15;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, #fff 0%, #c8c8d8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.landing .subtitle {
+  font-size: 17px;
+  color: var(--muted);
+  margin-bottom: 36px;
+  max-width: 420px;
+}
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--gradient);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 16px 40px;
+  font-size: 17px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 24px rgba(46, 204, 133, 0.25);
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(46, 204, 133, 0.35); }
+.btn-primary:active { transform: translateY(0); }
+.trust {
+  margin-top: 28px;
+  font-size: 13px;
+  color: var(--muted);
+  opacity: 0.7;
+}
+.trust span { color: var(--green); }
+
+/* ========== QUIZ ========== */
+.quiz { padding-top: 8px; }
+.progress-wrap {
+  background: var(--card);
+  border-radius: 8px;
+  height: 8px;
+  margin-bottom: 28px;
+  overflow: hidden;
+}
+.progress-bar {
+  height: 100%;
+  background: var(--gradient);
+  border-radius: 8px;
+  width: 10%;
+  transition: width 0.4s ease;
+}
+.progress-label {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 8px;
+  text-align: right;
+}
+.question-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px 24px;
+  flex: 1;
+}
+.question-card h2 {
+  font-size: 19px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.question-card .q-hint {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 20px;
+}
+.options { display: flex; flex-direction: column; gap: 10px; }
+.option-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: rgba(255,255,255,0.03);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  color: #e2e2e2;
+  font-size: 15px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, transform 0.15s;
+}
+.option-btn:hover {
+  border-color: rgba(46, 204, 133, 0.4);
+  background: rgba(46, 204, 133, 0.06);
+  transform: translateX(4px);
+}
+.option-btn.selected {
+  border-color: var(--green);
+  background: rgba(46, 204, 133, 0.1);
+}
+.quiz-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  gap: 12px;
+}
+.btn-back {
+  background: none;
+  border: 1.5px solid var(--border);
+  color: var(--muted);
+  border-radius: 10px;
+  padding: 12px 24px;
+  font-size: 15px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+.btn-back:hover { border-color: var(--green); color: #fff; }
+.btn-back:disabled { opacity: 0.3; cursor: not-allowed; }
+.btn-next {
+  background: var(--gradient);
+  border: none;
+  color: #fff;
+  border-radius: 10px;
+  padding: 12px 28px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform 0.2s, opacity 0.2s;
+  margin-left: auto;
+}
+.btn-next:disabled { opacity: 0.35; cursor: not-allowed; }
+.btn-next:hover:not(:disabled) { transform: translateY(-1px); }
+
+/* ========== RESULT ========== */
+.result { align-items: center; text-align: center; padding-top: 24px; }
+.score-circle {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px;
+  position: relative;
+}
+.score-circle::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 5px solid var(--border);
+}
+.score-circle::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 5px solid transparent;
+  border-top-color: var(--green);
+  animation: spin 1.5s ease-out;
+}
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.score-num {
+  font-size: 56px;
+  font-weight: 800;
+  line-height: 1;
+}
+.score-label {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.tier-badge {
+  display: inline-block;
+  padding: 6px 20px;
+  border-radius: 20px;
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.result-text {
+  font-size: 15px;
+  color: var(--muted);
+  max-width: 480px;
+  margin: 0 auto 28px;
+  line-height: 1.7;
+}
+/* Tips */
+.tips {
+  text-align: left;
+  width: 100%;
+  margin-bottom: 32px;
+}
+.tips h3 {
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+.tip-item {
+  display: flex;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.tip-item:last-child { border-bottom: none; }
+.tip-num {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(46, 204, 133, 0.12);
+  color: var(--green);
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.tip-num::before {
+  content: '';
+  position: absolute;
+  left: -14px;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--gradient);
+  border-radius: 2px;
+}
+.tip-text {
+  font-size: 14px;
+  color: #ccc;
+  line-height: 1.6;
+  padding-left: 4px;
+}
+
+/* ========== EMAIL FORM ========== */
+.email-section {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  width: 100%;
+  margin-bottom: 20px;
+}
+.email-section h3 {
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.email-section .sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+.form-group {
+  margin-bottom: 12px;
+}
+.form-group input {
+  width: 100%;
+  background: rgba(255,255,255,0.05);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 13px 16px;
+  font-size: 15px;
+  font-family: inherit;
+  color: #e2e2e2;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.form-group input::placeholder { color: var(--muted); }
+.form-group input:focus { border-color: var(--green); }
+.btn-submit {
+  width: 100%;
+  background: var(--gradient);
+  border: none;
+  color: #fff;
+  border-radius: 10px;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform 0.2s;
+  margin-top: 4px;
+}
+.btn-submit:hover { transform: translateY(-1px); }
+.btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+.form-error {
+  color: var(--red);
+  font-size: 13px;
+  margin-top: 8px;
+  display: none;
+}
+
+/* ========== THANK YOU ========== */
+.thankyou { align-items: center; justify-content: center; text-align: center; }
+.thankyou .check-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(46, 204, 133, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  font-size: 36px;
+}
+.thankyou h2 {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+.thankyou p {
+  color: var(--muted);
+  font-size: 15px;
+  margin-bottom: 28px;
+  max-width: 380px;
+}
+.btn-consult {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(107, 76, 154, 0.2);
+  border: 1.5px solid var(--purple);
+  color: #d4b8ff;
+  border-radius: 12px;
+  padding: 14px 32px;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.2s, transform 0.2s;
+}
+.btn-consult:hover { background: rgba(107, 76, 154, 0.35); transform: translateY(-2px); }
+
+/* ========== INDUSTRY SEARCH (Q7) ========== */
+.industry-search-wrap { position: relative; }
+.industry-search {
+  width: 100%;
+  padding: 14px 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: #e2e2e2;
+  font-size: 15px;
+  font-family: inherit;
+  outline: none;
+}
+.industry-search:focus { border-color: var(--green); }
+.industry-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0; right: 0;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  max-height: 260px;
+  overflow-y: auto;
+  z-index: 100;
+  margin-top: 4px;
+}
+.industry-option {
+  padding: 12px 16px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+.industry-option:last-child { border-bottom: none; }
+.industry-option:hover, .industry-option.active { background: rgba(46,204,133,0.08); }
+.risk-badge {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.risk-low { background: rgba(46,204,133,0.15); color: #2ECC85; }
+.risk-medium { background: rgba(241,196,15,0.15); color: #F1C40F; }
+.risk-high { background: rgba(230,126,34,0.15); color: #E67E22; }
+.risk-restricted { background: rgba(231,76,60,0.15); color: #E74C3C; }
+.industry-selected {
+  padding: 12px 16px;
+  background: rgba(46,204,133,0.08);
+  border: 1px solid var(--green);
+  border-radius: 10px;
+  margin-top: 8px;
+  font-size: 14px;
+}
+.industry-no-results {
+  padding: 16px;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .container { padding: 16px 14px; }
+  .question-card { padding: 20px 16px; }
+  .email-section { padding: 20px 16px; }
+  .score-circle { width: 150px; height: 150px; }
+  .score-num { font-size: 46px; }
+}
+/* Fade in animation */
+.fade-in { animation: fadeIn 0.35s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- LOGO -->
+  <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 210 90">
+    <defs>
+      <linearGradient id="fillGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+        <stop offset="0%" style="stop-color:#1FAD73"/>
+        <stop offset="55%" style="stop-color:#2ECC85"/>
+        <stop offset="55%" style="stop-color:transparent"/>
+        <stop offset="100%" style="stop-color:transparent"/>
+      </linearGradient>
+      <linearGradient id="strokeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#2ECC85"/>
+        <stop offset="100%" style="stop-color:#1FAD73"/>
+      </linearGradient>
+    </defs>
+    <g transform="translate(40, 45)">
+      <circle cx="0" cy="0" r="32" fill="none" stroke="url(#strokeGrad)" stroke-width="7"/>
+      <circle cx="0" cy="0" r="24" fill="url(#fillGrad)"/>
+    </g>
+    <text x="82" y="52" font-family="Inter, system-ui, sans-serif" font-size="28" font-weight="600" fill="#e2e2e2" letter-spacing="-0.5">ney</text>
+    <text x="129" y="52" font-family="Inter, system-ui, sans-serif" font-size="21" font-weight="500" fill="url(#strokeGrad)">&amp;</text>
+    <text x="148" y="52" font-family="Inter, system-ui, sans-serif" font-size="28" font-weight="600" fill="#e2e2e2" letter-spacing="-0.5">co</text>
+    <circle cx="182" cy="48" r="4" fill="#6B4C9A"/>
+  </svg>
+
+  <!-- STEP 1: LANDING -->
+  <div id="step-landing" class="step landing active">
+    <h1>Know Your<br>Bank-Ready Score</h1>
+    <p class="subtitle">Find out if your business is ready for a bank loan — in under 3 minutes, using the same criteria banks actually use.</p>
+    <button class="btn-primary" onclick="startQuiz()">
+      Start Free Assessment
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </button>
+    <p class="trust">🔒 No sign-up required · <span>Built on 8 years of Australian banking experience</span></p>
+  </div>
+
+  <!-- STEP 2: QUIZ -->
+  <div id="step-quiz" class="step quiz">
+    <p class="progress-label"><span id="q-counter">1</span> of 10</p>
+    <div class="progress-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+    <div class="question-card fade-in" id="question-card">
+      <h2 id="q-title"></h2>
+      <p class="q-hint" id="q-hint"></p>
+      <div class="options" id="options-wrap"></div>
+    </div>
+    <div class="quiz-nav">
+      <button class="btn-back" id="btn-prev" onclick="prevQuestion()">← Back</button>
+      <button class="btn-next" id="btn-next" onclick="nextQuestion()">Next →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: RESULT -->
+  <div id="step-result" class="step result">
+    <div class="score-circle" id="score-circle">
+      <span class="score-num" id="score-display">0</span>
+      <span class="score-label">out of 100</span>
+    </div>
+    <div class="tier-badge" id="tier-badge"></div>
+    <p class="result-text" id="result-text"></p>
+    <div class="tips" id="tips-wrap">
+      <h3>Your Top 3 Improvements</h3>
+      <div id="tips-list"></div>
+    </div>
+    <div class="email-section">
+      <h3>📩 Get Your Full Report</h3>
+      <p class="sub">We'll email you a detailed breakdown with next steps.</p>
+      <div class="form-group"><input type="text" id="input-name" placeholder="Your name"></div>
+      <div class="form-group"><input type="email" id="input-email" placeholder="Email address"></div>
+      <button class="btn-submit" id="btn-submit" onclick="submitLead()">Send My Report</button>
+      <p class="form-error" id="form-error"></p>
+    </div>
+  </div>
+
+  <!-- STEP 4: THANK YOU -->
+  <div id="step-thankyou" class="step thankyou">
+    <div class="check-icon">✅</div>
+    <h2>You're All Set!</h2>
+    <p>Your personalised Bank-Ready Report is on its way. Check your inbox in a few minutes.</p>
+    <a href="#book-consultation" class="btn-consult">
+      📅 Book a Free 15-Min Strategy Call
+    </a>
+    <p class="trust" style="margin-top:20px">No obligations. Just expert advice tailored to your score.</p>
+  </div>
+</div>
+
+<script>
+// ─── INDUSTRY DATABASE ───────────────────────────────────
+const INDUSTRY_DB = [
+  { name: "Agriculture", division_name: "Agriculture, Forestry and Fishing", risk: "medium", notes: "Seasonal income — lenders scrutinise cash flow patterns" },
+  { name: "Aquaculture", division_name: "Agriculture, Forestry and Fishing", risk: "medium", notes: "" },
+  { name: "Forestry and Logging", division_name: "Agriculture, Forestry and Fishing", risk: "medium", notes: "" },
+  { name: "Fishing, Hunting and Trapping", division_name: "Agriculture, Forestry and Fishing", risk: "medium", notes: "Seasonal, some lenders cautious" },
+  { name: "Agriculture, Forestry and Fishing Support Services", division_name: "Agriculture, Forestry and Fishing", risk: "medium", notes: "" },
+  { name: "Coal Mining", division_name: "Mining", risk: "restricted", notes: "Environmental risk, most major banks restricted" },
+  { name: "Oil and Gas Extraction", division_name: "Mining", risk: "restricted", notes: "Specialist lenders only" },
+  { name: "Metal Ore Mining", division_name: "Mining", risk: "restricted", notes: "High capital, environmental exposure" },
+  { name: "Non-Metallic Mineral Mining and Quarrying", division_name: "Mining", risk: "high", notes: "" },
+  { name: "Exploration and Other Mining Support Services", division_name: "Mining", risk: "high", notes: "" },
+  { name: "Food Product Manufacturing", division_name: "Manufacturing", risk: "medium", notes: "" },
+  { name: "Beverage and Tobacco Product Manufacturing", division_name: "Manufacturing", risk: "medium", notes: "" },
+  { name: "Textile, Leather, Clothing and Footwear Manufacturing", division_name: "Manufacturing", risk: "medium", notes: "" },
+  { name: "Wood Product Manufacturing", division_name: "Manufacturing", risk: "medium", notes: "" },
+  { name: "Pulp, Paper and Converted Paper Product Manufacturing", division_name: "Manufacturing", risk: "medium", notes: "" },
+  { name: "Printing (including Reproduction of Recorded Media)", division_name: "Manufacturing", risk: "medium", notes: "" },
+  { name: "Petroleum and Coal Product Manufacturing", division_name: "Manufacturing", risk: "restricted", notes: "Environmental/contamination risk" },
+  { name: "Basic Chemical and Chemical Product Manufacturing", division_name: "Manufacturing", risk: "restricted", notes: "Pollution/contamination liability" },
+  { name: "Polymer Product and Rubber Product Manufacturing", division_name: "Manufacturing", risk: "medium", notes: "" },
+  { name: "Non-Metallic Mineral Product Manufacturing", division_name: "Manufacturing", risk: "medium", notes: "" },
+  { name: "Primary Metal and Metal Product Manufacturing", division_name: "Manufacturing", risk: "medium", notes: "" },
+  { name: "Fabricated Metal Product Manufacturing", division_name: "Manufacturing", risk: "medium", notes: "" },
+  { name: "Transport Equipment Manufacturing", division_name: "Manufacturing", risk: "medium", notes: "" },
+  { name: "Machinery and Equipment Manufacturing", division_name: "Manufacturing", risk: "medium", notes: "" },
+  { name: "Furniture and Other Manufacturing", division_name: "Manufacturing", risk: "medium", notes: "" },
+  { name: "Electricity Supply", division_name: "Electricity, Gas, Water and Waste Services", risk: "low", notes: "Regulated, stable cash flows" },
+  { name: "Gas Supply", division_name: "Electricity, Gas, Water and Waste Services", risk: "low", notes: "" },
+  { name: "Water Supply, Sewerage and Drainage Services", division_name: "Electricity, Gas, Water and Waste Services", risk: "low", notes: "" },
+  { name: "Waste Collection, Treatment and Disposal Services", division_name: "Electricity, Gas, Water and Waste Services", risk: "medium", notes: "Some contamination risk" },
+  { name: "Building Construction (Residential)", division_name: "Construction", risk: "high", notes: "NAB restricted on residential developers; high default risk in cycle downturns" },
+  { name: "Building Construction (Commercial / Developer)", division_name: "Construction", risk: "restricted", notes: "NAB/WBC generally restricted on property developers and Owner Builders" },
+  { name: "Heavy and Civil Engineering Construction", division_name: "Construction", risk: "high", notes: "Large project risk, cash flow lumpy" },
+  { name: "Construction Services (Trades / Subcontractors)", division_name: "Construction", risk: "high", notes: "High insolvency rate in sector; cash flow dependent on head contractors" },
+  { name: "Owner Builder", division_name: "Construction", risk: "restricted", notes: "NAB no Owner Builder policy" },
+  { name: "Basic Material Wholesaling", division_name: "Wholesale Trade", risk: "medium", notes: "" },
+  { name: "Machinery and Equipment Wholesaling", division_name: "Wholesale Trade", risk: "medium", notes: "" },
+  { name: "Motor Vehicle and Motor Vehicle Parts Wholesaling", division_name: "Wholesale Trade", risk: "medium", notes: "" },
+  { name: "Grocery, Liquor and Tobacco Product Wholesaling", division_name: "Wholesale Trade", risk: "medium", notes: "" },
+  { name: "Other Goods Wholesaling", division_name: "Wholesale Trade", risk: "medium", notes: "" },
+  { name: "Commission-Based Wholesaling", division_name: "Wholesale Trade", risk: "medium", notes: "" },
+  { name: "Motor Vehicle and Motor Vehicle Parts Retailing", division_name: "Retail Trade", risk: "medium", notes: "" },
+  { name: "Fuel Retailing", division_name: "Retail Trade", risk: "medium", notes: "" },
+  { name: "Food Retailing (Supermarkets / Grocery)", division_name: "Retail Trade", risk: "medium", notes: "" },
+  { name: "Other Store-Based Retailing", division_name: "Retail Trade", risk: "medium", notes: "NAB rates retail commercial property as high risk" },
+  { name: "Non-Store Retailing (eCommerce)", division_name: "Retail Trade", risk: "medium", notes: "" },
+  { name: "Accommodation (Hotels / Motels)", division_name: "Accommodation and Food Services", risk: "medium", notes: "Established brands preferred; short-term rentals (Airbnb) treated cautiously" },
+  { name: "Restaurants and Cafes", division_name: "Accommodation and Food Services", risk: "medium", notes: "High failure rate but cash-based businesses show strong bank statements" },
+  { name: "Takeaway / Fast Food", division_name: "Accommodation and Food Services", risk: "medium", notes: "" },
+  { name: "Pubs, Bars and Nightclubs", division_name: "Accommodation and Food Services", risk: "high", notes: "Reputation risk, licence exposure" },
+  { name: "Road Transport (Trucking / Logistics)", division_name: "Transport, Postal and Warehousing", risk: "medium", notes: "" },
+  { name: "Rail Transport", division_name: "Transport, Postal and Warehousing", risk: "low", notes: "" },
+  { name: "Water Transport", division_name: "Transport, Postal and Warehousing", risk: "medium", notes: "" },
+  { name: "Air and Space Transport", division_name: "Transport, Postal and Warehousing", risk: "medium", notes: "" },
+  { name: "Other Transport (Taxi / Rideshare)", division_name: "Transport, Postal and Warehousing", risk: "medium", notes: "" },
+  { name: "Postal and Courier Services", division_name: "Transport, Postal and Warehousing", risk: "medium", notes: "" },
+  { name: "Transport Support Services", division_name: "Transport, Postal and Warehousing", risk: "medium", notes: "" },
+  { name: "Warehousing and Storage Services", division_name: "Transport, Postal and Warehousing", risk: "low", notes: "" },
+  { name: "Publishing", division_name: "Information Media and Telecommunications", risk: "medium", notes: "" },
+  { name: "Motion Picture and Sound Recording", division_name: "Information Media and Telecommunications", risk: "medium", notes: "" },
+  { name: "Broadcasting", division_name: "Information Media and Telecommunications", risk: "medium", notes: "" },
+  { name: "Internet Publishing and Broadcasting", division_name: "Information Media and Telecommunications", risk: "medium", notes: "" },
+  { name: "Telecommunications Services", division_name: "Information Media and Telecommunications", risk: "low", notes: "" },
+  { name: "Internet Service Providers / Web / Data Processing", division_name: "Information Media and Telecommunications", risk: "low", notes: "" },
+  { name: "Library and Other Information Services", division_name: "Information Media and Telecommunications", risk: "low", notes: "" },
+  { name: "Finance (Banking / Lending / Funds)", division_name: "Financial and Insurance Services", risk: "low", notes: "Regulated, stable" },
+  { name: "Mortgage Broking / Financial Planning", division_name: "Financial and Insurance Services", risk: "low", notes: "" },
+  { name: "Insurance and Superannuation Funds", division_name: "Financial and Insurance Services", risk: "low", notes: "" },
+  { name: "Auxiliary Finance and Insurance Services", division_name: "Financial and Insurance Services", risk: "low", notes: "" },
+  { name: "Rental and Hiring Services (Equipment / Tools)", division_name: "Rental, Hiring and Real Estate Services", risk: "medium", notes: "" },
+  { name: "Property Management / Real Estate Agency", division_name: "Rental, Hiring and Real Estate Services", risk: "low", notes: "" },
+  { name: "Property Development (Commercial)", division_name: "Rental, Hiring and Real Estate Services", risk: "restricted", notes: "NAB restricted on commercial developers" },
+  { name: "Legal Services", division_name: "Professional, Scientific and Technical Services", risk: "low", notes: "" },
+  { name: "Accounting and Tax Services", division_name: "Professional, Scientific and Technical Services", risk: "low", notes: "" },
+  { name: "Management Consulting", division_name: "Professional, Scientific and Technical Services", risk: "low", notes: "" },
+  { name: "Architecture and Engineering Services", division_name: "Professional, Scientific and Technical Services", risk: "low", notes: "" },
+  { name: "Scientific Research and Development", division_name: "Professional, Scientific and Technical Services", risk: "medium", notes: "" },
+  { name: "Market Research / Advertising", division_name: "Professional, Scientific and Technical Services", risk: "low", notes: "" },
+  { name: "Veterinary Services", division_name: "Professional, Scientific and Technical Services", risk: "low", notes: "" },
+  { name: "IT / Computer System Design and Software Development", division_name: "Professional, Scientific and Technical Services", risk: "low", notes: "Banks favour high-margin, recurring revenue" },
+  { name: "Administrative Services (Business Support / HR)", division_name: "Administrative and Support Services", risk: "low", notes: "" },
+  { name: "Building Cleaning, Pest Control and Support Services", division_name: "Administrative and Support Services", risk: "medium", notes: "" },
+  { name: "Public Administration", division_name: "Public Administration and Safety", risk: "low", notes: "" },
+  { name: "Security / Safety Services", division_name: "Public Administration and Safety", risk: "medium", notes: "" },
+  { name: "Preschool and School Education", division_name: "Education and Training", risk: "low", notes: "" },
+  { name: "Tertiary Education (Colleges / Universities)", division_name: "Education and Training", risk: "low", notes: "" },
+  { name: "Adult, Community and Other Education (Tutoring / RTO)", division_name: "Education and Training", risk: "low", notes: "" },
+  { name: "Hospitals", division_name: "Health Care and Social Assistance", risk: "low", notes: "" },
+  { name: "Medical / GP / Specialist Practices", division_name: "Health Care and Social Assistance", risk: "low", notes: "" },
+  { name: "Allied Health (Physio / Chiro / Dental)", division_name: "Health Care and Social Assistance", risk: "low", notes: "" },
+  { name: "Pathology / Diagnostic Services", division_name: "Health Care and Social Assistance", risk: "low", notes: "" },
+  { name: "Residential Care Services (Aged Care)", division_name: "Health Care and Social Assistance", risk: "medium", notes: "" },
+  { name: "NDIS / Disability Services", division_name: "Health Care and Social Assistance", risk: "restricted", notes: "WBC restricted on NDIS providers; funding model risk" },
+  { name: "Child Care Services", division_name: "Health Care and Social Assistance", risk: "low", notes: "" },
+  { name: "Other Social Assistance", division_name: "Health Care and Social Assistance", risk: "medium", notes: "" },
+  { name: "Museums / Heritage Activities", division_name: "Arts and Recreation Services", risk: "low", notes: "" },
+  { name: "Creative and Performing Arts", division_name: "Arts and Recreation Services", risk: "medium", notes: "Irregular income" },
+  { name: "Gyms and Fitness Centres", division_name: "Arts and Recreation Services", risk: "medium", notes: "" },
+  { name: "Sport and Recreation Facilities / Clubs", division_name: "Arts and Recreation Services", risk: "medium", notes: "" },
+  { name: "Gambling Activities", division_name: "Arts and Recreation Services", risk: "restricted", notes: "Reputation risk, heavily regulated" },
+  { name: "Motor Vehicle Repair and Maintenance", division_name: "Other Services", risk: "medium", notes: "" },
+  { name: "Other Repair and Maintenance (Electronics / Appliances)", division_name: "Other Services", risk: "medium", notes: "" },
+  { name: "Hairdressing and Beauty Services", division_name: "Other Services", risk: "medium", notes: "" },
+  { name: "Funeral Services", division_name: "Other Services", risk: "low", notes: "" },
+  { name: "Laundry and Dry-Cleaning Services", division_name: "Other Services", risk: "medium", notes: "" },
+  { name: "Religious / Civic Organisations", division_name: "Other Services", risk: "low", notes: "" },
+  { name: "Other Personal Services", division_name: "Other Services", risk: "medium", notes: "" }
+];
+
+const RISK_SCORES = { low: 15, medium: 10, high: 3, restricted: 0 };
+const RISK_LABELS = {
+  low: { emoji: '🟢', label: 'Low Risk', cls: 'risk-low' },
+  medium: { emoji: '🟡', label: 'Medium Risk', cls: 'risk-medium' },
+  high: { emoji: '🔴', label: 'High Risk', cls: 'risk-high' },
+  restricted: { emoji: '⛔', label: 'Restricted', cls: 'risk-restricted' }
+};
+
+// ─── DATA ────────────────────────────────────────────────
+const questions = [
+  {
+    id: 'q1', title: 'What is your annual business turnover?',
+    hint: 'Approximate revenue before expenses',
+    options: [
+      { label: 'Under $250,000', value: 0 },
+      { label: '$250,000 – $500,000', value: 1 },
+      { label: '$500,000 – $1,000,000', value: 2 },
+      { label: 'Over $1,000,000', value: 3 }
+    ]
+  },
+  {
+    id: 'q2', title: 'How has your turnover changed compared to last year?',
+    hint: '',
+    options: [
+      { label: 'Grew more than 35%', value: 0 },
+      { label: 'Within normal range (±35%)', value: 1 },
+      { label: 'Declined more than 35%', value: 2 },
+      { label: 'Just started — no comparison', value: 3 }
+    ]
+  },
+  {
+    id: 'q3', title: 'What is your net profit margin?',
+    hint: 'After-tax net profit ÷ revenue',
+    options: [
+      { label: 'Under 5%', value: 0 },
+      { label: '5% – 10%', value: 1 },
+      { label: '10% – 20%', value: 2 },
+      { label: 'Over 20%', value: 3 }
+    ]
+  },
+  {
+    id: 'q4', title: 'How many years has your business been operating?',
+    hint: '',
+    options: [
+      { label: 'Less than 1 year', value: 0 },
+      { label: '1 – 2 years', value: 1 },
+      { label: '2 – 5 years', value: 2 },
+      { label: 'Over 5 years', value: 3 }
+    ]
+  },
+  {
+    id: 'q5', title: 'What is the status of your ATO tax record?',
+    hint: 'This is one of the most important factors for banks',
+    options: [
+      { label: 'No debt, BAS lodged on time ✅', value: 0 },
+      { label: 'Has debt, but on an ATO Payment Plan', value: 1 },
+      { label: 'Has debt (< $25K), no repayment plan', value: 2 },
+      { label: 'Has debt (> $25K), no repayment plan', value: 3 }
+    ]
+  },
+  {
+    id: 'q6', title: 'What portion of your monthly income goes to business loan repayments?',
+    hint: '',
+    options: [
+      { label: 'No business loans', value: 0 },
+      { label: 'Less than 20%', value: 1 },
+      { label: '20% – 40%', value: 2 },
+      { label: 'Over 40%', value: 3 }
+    ]
+  },
+  {
+    id: 'q7', title: 'What industry is your core business in?',
+    hint: '',
+    options: [
+      { label: 'Professional services / Healthcare / Education', value: 0 },
+      { label: 'Hospitality / Retail / Manufacturing / Transport', value: 1 },
+      { label: 'Construction / Development / Owner Builder', value: 2 },
+      { label: 'Mining / NDIS / Specialty property / Restricted', value: 3 }
+    ]
+  },
+  {
+    id: 'q8', title: 'Do you know your personal credit score?',
+    hint: 'Equifax / Illion / Experian',
+    options: [
+      { label: "Not sure (we recommend checking)", value: 0 },
+      { label: '700+', value: 1 },
+      { label: '600 – 699', value: 2 },
+      { label: '500 – 599', value: 3 },
+      { label: 'Below 500', value: 4 }
+    ]
+  },
+  {
+    id: 'q9', title: 'How would you describe your business cash flow?',
+    hint: '',
+    options: [
+      { label: 'Stable year-round, no major fluctuations', value: 0 },
+      { label: 'Seasonal but predictable', value: 1 },
+      { label: 'Irregular and highly volatile', value: 2 }
+    ]
+  },
+  {
+    id: 'q10', title: 'What type of loan are you looking to apply for?',
+    hint: 'This helps us personalise your recommendations',
+    options: [
+      { label: 'Commercial property loan', value: 0 },
+      { label: 'Equipment / Asset finance', value: 1 },
+      { label: 'Working capital loan', value: 2 },
+      { label: 'Refinancing', value: 3 },
+      { label: 'Other', value: 4 }
+    ]
+  }
+];
+
+// ─── SCORING MAPS ────────────────────────────────────────
+const scoreMap = {
+  q1: [2, 5, 8, 10],          // turnover
+  q2: [-2, 0, -3, 0],         // turnover change (growth>35 = -2, normal = 0, decline>35 = -3, new = 0)
+  q3: [2, 6, 10, 12],         // profit margin
+  q4: [0, 5, 10, 15],         // years in business
+  q5: [20, 13, 8, 0],         // ATO compliance
+  q6: [10, 7, 4, 1],          // debt load
+  q7: [15, 10, 3, 0],         // industry risk
+  q8: [5, 12, 8, 3, 0],       // credit score
+  q9: [6, 4, 1]               // cash flow
+  // q10 is not scored — used for personalisation only
+};
+
+// Dimension names for tip generation
+const dimensionNames = {
+  q1: 'Annual Turnover',
+  q3: 'Net Profit Margin',
+  q4: 'Years in Business',
+  q5: 'ATO Compliance',
+  q6: 'Debt Load',
+  q7: 'Industry Risk',
+  q8: 'Personal Credit',
+  q9: 'Cash Flow'
+};
+
+const dimensionMax = {
+  q1: 10, q3: 12, q4: 15, q5: 20, q6: 10, q7: 15, q8: 12, q9: 6
+};
+
+const tipMessages = {
+  q5: "Clearing your ATO debt or setting up a formal repayment plan is the #1 priority — it directly affects every bank's approval decision.",
+  q8: "Improving your personal credit score takes time: pay off credit card balances, avoid applying for new credit frequently, and dispute any errors on your file.",
+  q4: "Keep building your trading history — once you pass the 2-year mark, significantly more lenders become available to you.",
+  q3: "Ensure your BAS is lodged on time and your accountant is presenting net profit clearly. Banks look at after-tax net profit, not revenue.",
+  q6: "Hold off on taking on new debt or gearing up further. Focus on reducing your existing debt-to-income ratio before applying.",
+  q9: "Six months or more of clean bank statements is your strongest evidence. Keep account balances healthy and avoid irregular large withdrawals.",
+  q7: "Some banks have hard policy restrictions on your industry. A specialist broker can match you with lenders who are open to your sector.",
+  q1: "Growing your revenue above $250K opens up significantly more lending options. Focus on consistent, documentable income."
+};
+
+// ─── STATE ───────────────────────────────────────────────
+let currentQ = 0;
+const answers = {};
+
+// ─── NAVIGATION ──────────────────────────────────────────
+function showStep(id) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(id);
+  el.classList.add('active');
+  el.classList.remove('fade-in');
+  void el.offsetWidth; // force reflow
+  el.classList.add('fade-in');
+}
+
+function startQuiz() {
+  showStep('step-quiz');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = questions[currentQ];
+  document.getElementById('q-title').textContent = q.title;
+  document.getElementById('q-hint').textContent = q.hint || '';
+  document.getElementById('q-counter').textContent = currentQ + 1;
+  document.getElementById('progress-bar').style.width = ((currentQ + 1) / questions.length * 100) + '%';
+
+  const wrap = document.getElementById('options-wrap');
+  wrap.innerHTML = '';
+
+  // ── Q7: Industry search ──
+  if (q.id === 'q7') {
+    renderIndustrySearch(wrap);
+    updateNavButtons(q.id);
+    animateCard();
+    return;
+  }
+
+  // ── Q10: Multi-select ──
+  if (q.id === 'q10') {
+    renderMultiSelect(wrap, q);
+    updateNavButtons(q.id);
+    animateCard();
+    return;
+  }
+
+  // ── Default: single-select options ──
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn' + (answers[q.id] === i ? ' selected' : '');
+    btn.textContent = opt.label;
+    btn.onclick = () => selectOption(q.id, i);
+    wrap.appendChild(btn);
+  });
+
+  updateNavButtons(q.id);
+  animateCard();
+}
+
+function updateNavButtons(qId) {
+  document.getElementById('btn-prev').disabled = currentQ === 0;
+  const nextBtn = document.getElementById('btn-next');
+  nextBtn.textContent = currentQ === questions.length - 1 ? 'See My Score →' : 'Next →';
+  if (qId === 'q7') {
+    nextBtn.disabled = !answers.q7;
+  } else if (qId === 'q10') {
+    nextBtn.disabled = !answers.q10 || answers.q10.length === 0;
+  } else {
+    nextBtn.disabled = answers[qId] === undefined;
+  }
+}
+
+function animateCard() {
+  const card = document.getElementById('question-card');
+  card.classList.remove('fade-in');
+  void card.offsetWidth;
+  card.classList.add('fade-in');
+}
+
+// ── Q7: Industry Search ──────────────────────────────────
+function renderIndustrySearch(wrap) {
+  const searchWrap = document.createElement('div');
+  searchWrap.className = 'industry-search-wrap';
+
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'industry-search';
+  input.placeholder = 'Type your industry (e.g. cafe, construction, IT...)';
+  input.autocomplete = 'off';
+
+  const dropdown = document.createElement('div');
+  dropdown.className = 'industry-dropdown';
+  dropdown.style.display = 'none';
+
+  searchWrap.appendChild(input);
+  searchWrap.appendChild(dropdown);
+  wrap.appendChild(searchWrap);
+
+  // Show selected state if already answered
+  if (answers.q7) {
+    const sel = document.createElement('div');
+    sel.className = 'industry-selected';
+    sel.id = 'industry-selected-display';
+    const rl = RISK_LABELS[answers.q7.risk];
+    sel.innerHTML = `✅ <strong>${answers.q7.name}</strong> — <span class="risk-badge ${rl.cls}">${rl.emoji} ${rl.label}</span> · ${answers.q7.score}/15 pts`;
+    wrap.appendChild(sel);
+    input.value = answers.q7.name;
+  }
+
+  let activeIdx = -1;
+
+  input.addEventListener('input', () => {
+    const term = input.value.trim().toLowerCase();
+    if (term.length < 1) { dropdown.style.display = 'none'; return; }
+    const matches = INDUSTRY_DB.filter(ind =>
+      ind.name.toLowerCase().includes(term) || ind.division_name.toLowerCase().includes(term)
+    ).slice(0, 20);
+    renderDropdown(dropdown, matches);
+    activeIdx = -1;
+  });
+
+  input.addEventListener('focus', () => {
+    if (input.value.trim().length >= 1) input.dispatchEvent(new Event('input'));
+  });
+
+  input.addEventListener('keydown', (e) => {
+    const items = dropdown.querySelectorAll('.industry-option');
+    if (!items.length) return;
+    if (e.key === 'ArrowDown') { e.preventDefault(); activeIdx = Math.min(activeIdx + 1, items.length - 1); highlightOption(items, activeIdx); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); activeIdx = Math.max(activeIdx - 1, 0); highlightOption(items, activeIdx); }
+    else if (e.key === 'Enter' && activeIdx >= 0) { e.preventDefault(); items[activeIdx].click(); }
+  });
+
+  // Close dropdown on outside click
+  document.addEventListener('click', function handler(e) {
+    if (!searchWrap.contains(e.target)) { dropdown.style.display = 'none'; }
+  });
+
+  function renderDropdown(dd, matches) {
+    dd.innerHTML = '';
+    if (matches.length === 0) {
+      dd.innerHTML = '<div class="industry-no-results">Can\'t find your industry? Select the closest match or contact us.</div>';
+      dd.style.display = 'block';
+      return;
+    }
+    matches.forEach(ind => {
+      const opt = document.createElement('div');
+      opt.className = 'industry-option';
+      const rl = RISK_LABELS[ind.risk];
+      opt.innerHTML = `<span>${ind.name}</span><span class="risk-badge ${rl.cls}">${rl.emoji} ${rl.label}</span>`;
+      opt.onclick = () => selectIndustry(ind, input, dd, wrap);
+      dd.appendChild(opt);
+    });
+    dd.style.display = 'block';
+  }
+
+  function highlightOption(items, idx) {
+    items.forEach((el, i) => el.classList.toggle('active', i === idx));
+    items[idx].scrollIntoView({ block: 'nearest' });
+  }
+}
+
+function selectIndustry(ind, input, dropdown, wrap) {
+  const score = RISK_SCORES[ind.risk];
+  answers.q7 = { name: ind.name, risk: ind.risk, score };
+  input.value = ind.name;
+  dropdown.style.display = 'none';
+
+  // Update or create selected display
+  let sel = document.getElementById('industry-selected-display');
+  if (!sel) {
+    sel = document.createElement('div');
+    sel.className = 'industry-selected';
+    sel.id = 'industry-selected-display';
+    wrap.appendChild(sel);
+  }
+  const rl = RISK_LABELS[ind.risk];
+  sel.innerHTML = `✅ <strong>${ind.name}</strong> — <span class="risk-badge ${rl.cls}">${rl.emoji} ${rl.label}</span> · ${score}/15 pts`;
+
+  document.getElementById('btn-next').disabled = false;
+}
+
+// ── Q10: Multi-select ────────────────────────────────────
+function renderMultiSelect(wrap, q) {
+  if (!answers.q10) answers.q10 = [];
+  q.options.forEach((opt) => {
+    const btn = document.createElement('button');
+    const isSelected = answers.q10.includes(opt.label);
+    btn.className = 'option-btn' + (isSelected ? ' selected' : '');
+    btn.innerHTML = (isSelected ? '✓ ' : '') + opt.label;
+    btn.onclick = () => toggleMultiOption(opt.label, btn, q.id);
+    wrap.appendChild(btn);
+  });
+}
+
+function toggleMultiOption(label, btn, qId) {
+  if (!answers[qId]) answers[qId] = [];
+  const idx = answers[qId].indexOf(label);
+  if (idx >= 0) {
+    answers[qId].splice(idx, 1);
+    btn.classList.remove('selected');
+    btn.innerHTML = label;
+  } else {
+    answers[qId].push(label);
+    btn.classList.add('selected');
+    btn.innerHTML = '✓ ' + label;
+  }
+  document.getElementById('btn-next').disabled = answers[qId].length === 0;
+}
+
+function selectOption(qId, idx) {
+  if (qId === 'q7' || qId === 'q10') return; // handled by their own logic
+  answers[qId] = idx;
+  document.querySelectorAll('.option-btn').forEach((btn, i) => {
+    btn.classList.toggle('selected', i === idx);
+  });
+  document.getElementById('btn-next').disabled = false;
+}
+
+function nextQuestion() {
+  const qId = questions[currentQ].id;
+  if (qId === 'q7' && !answers.q7) return;
+  if (qId === 'q10' && (!answers.q10 || answers.q10.length === 0)) return;
+  if (qId !== 'q7' && qId !== 'q10' && answers[qId] === undefined) return;
+  if (currentQ < questions.length - 1) {
+    currentQ++;
+    renderQuestion();
+  } else {
+    showResults();
+  }
+}
+
+function prevQuestion() {
+  if (currentQ > 0) {
+    currentQ--;
+    renderQuestion();
+  }
+}
+
+// ─── SCORING ─────────────────────────────────────────────
+function calculateScore() {
+  let score = 0;
+  let hardCap = 100;
+  const dimScores = {}; // track each dimension's percentage for tips
+
+  // Q1: turnover base
+  const q1Score = scoreMap.q1[answers.q1];
+  score += q1Score;
+  dimScores.q1 = q1Score / dimensionMax.q1;
+
+  // Q2: turnover change (modifier, not its own dimension)
+  score += scoreMap.q2[answers.q2];
+
+  // Q3: profit margin
+  const q3Score = scoreMap.q3[answers.q3];
+  score += q3Score;
+  dimScores.q3 = q3Score / dimensionMax.q3;
+
+  // Q4: years in business — hard cap
+  if (answers.q4 === 0) hardCap = Math.min(hardCap, 49);
+  const q4Score = scoreMap.q4[answers.q4];
+  score += q4Score;
+  dimScores.q4 = q4Score / dimensionMax.q4;
+
+  // Q5: ATO — hard cap
+  if (answers.q5 === 3) hardCap = Math.min(hardCap, 39);
+  const q5Score = scoreMap.q5[answers.q5];
+  score += q5Score;
+  dimScores.q5 = q5Score / dimensionMax.q5;
+
+  // Q6: debt
+  const q6Score = scoreMap.q6[answers.q6];
+  score += q6Score;
+  dimScores.q6 = q6Score / dimensionMax.q6;
+
+  // Q7: industry (object-based from search)
+  const q7Score = answers.q7 ? answers.q7.score : 0;
+  score += q7Score;
+  dimScores.q7 = q7Score / dimensionMax.q7;
+
+  // Q8: credit — extra penalty
+  if (answers.q8 === 4) score -= 5; // below 500
+  const q8Score = scoreMap.q8[answers.q8];
+  score += q8Score;
+  dimScores.q8 = q8Score / dimensionMax.q8;
+
+  // Q9: cash flow
+  const q9Score = scoreMap.q9[answers.q9];
+  score += q9Score;
+  dimScores.q9 = q9Score / dimensionMax.q9;
+
+  const finalScore = Math.min(Math.max(score, 0), hardCap);
+  return { finalScore, dimScores, hardCap };
+}
+
+function getTier(score) {
+  if (score >= 80) return { name: 'Healthy', emoji: '🟢', color: '#2ECC85', bg: 'rgba(46,204,133,0.12)',
+    text: "Your business ticks most of the boxes banks look for. Now is a great time to apply — a good broker can help you get the best deal." };
+  if (score >= 60) return { name: 'Fine', emoji: '🟡', color: '#F1C40F', bg: 'rgba(241,196,15,0.12)',
+    text: "You have a reasonable chance of approval, but some lenders may have conditions. Talking to a specialist broker before applying can save time and protect your credit file." };
+  if (score >= 40) return { name: 'Action Required', emoji: '🟠', color: '#E67E22', bg: 'rgba(230,126,34,0.12)',
+    text: "Your current position needs improvement before applying. The good news: with the right actions, you could be in a much stronger position within 3–6 months." };
+  return { name: 'Not Ready', emoji: '🔴', color: '#E74C3C', bg: 'rgba(231,76,60,0.12)',
+    text: "Applying now carries a high risk of rejection, which would also hurt your credit file. Let's build a plan to strengthen your position first." };
+}
+
+function getTopTips(dimScores) {
+  // Sort dimensions by score percentage (ascending = weakest first)
+  const sorted = Object.entries(dimScores)
+    .sort((a, b) => a[1] - b[1]);
+  const tips = [];
+  for (const [key] of sorted) {
+    if (tipMessages[key] && tips.length < 3) {
+      tips.push({ dim: dimensionNames[key], msg: tipMessages[key] });
+    }
+  }
+  return tips;
+}
+
+// ─── RESULTS DISPLAY ─────────────────────────────────────
+function showResults() {
+  const { finalScore, dimScores } = calculateScore();
+  const tier = getTier(finalScore);
+
+  showStep('step-result');
+
+  // Animate score counter
+  const display = document.getElementById('score-display');
+  const circle = document.getElementById('score-circle');
+  circle.style.borderColor = tier.color;
+  let current = 0;
+  const duration = 1500;
+  const start = performance.now();
+  function tick(now) {
+    const elapsed = now - start;
+    const progress = Math.min(elapsed / duration, 1);
+    // ease out
+    const eased = 1 - Math.pow(1 - progress, 3);
+    current = Math.round(eased * finalScore);
+    display.textContent = current;
+    display.style.color = tier.color;
+    if (progress < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+
+  // Tier badge
+  const badge = document.getElementById('tier-badge');
+  badge.textContent = tier.emoji + ' ' + tier.name;
+  badge.style.background = tier.bg;
+  badge.style.color = tier.color;
+
+  // Result text
+  document.getElementById('result-text').textContent = tier.text;
+
+  // Tips
+  const tips = getTopTips(dimScores);
+  const listEl = document.getElementById('tips-list');
+  listEl.innerHTML = '';
+  tips.forEach((tip, i) => {
+    const item = document.createElement('div');
+    item.className = 'tip-item';
+    item.innerHTML = `<div class="tip-num">${i + 1}</div><div class="tip-text"><strong>${tip.dim}:</strong> ${tip.msg}</div>`;
+    listEl.appendChild(item);
+  });
+
+  // Store for submission
+  window._scoreData = { score: finalScore, tier: tier.name, dimScores, answers: { ...answers } };
+}
+
+// ─── SUPABASE SUBMIT ─────────────────────────────────────
+async function submitLead() {
+  const name = document.getElementById('input-name').value.trim();
+  const email = document.getElementById('input-email').value.trim();
+  const errEl = document.getElementById('form-error');
+  const btn = document.getElementById('btn-submit');
+
+  errEl.style.display = 'none';
+  if (!email || !email.includes('@')) {
+    errEl.textContent = 'Please enter a valid email address.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+
+  // 问题标签映射（用于邮件显示）
+  const questionLabels = {
+    q1: "Annual Turnover",
+    q2: "Turnover Change (YoY)",
+    q3: "Net Profit Margin",
+    q4: "Years in Business",
+    q5: "ATO Tax Compliance",
+    q6: "Existing Debt Load",
+    q7: "Industry",
+    q8: "Personal Credit Score",
+    q9: "Cash Flow Stability",
+    q10: "Loan Type(s) Seeking"
+  };
+
+  const answers_summary = {};
+  questions.forEach(q => {
+    const label = questionLabels[q.id] || q.id;
+    if (q.id === 'q7') {
+      answers_summary[label] = answers.q7 ? `${answers.q7.name} (${answers.q7.risk} risk)` : 'Not answered';
+    } else if (q.id === 'q10') {
+      answers_summary[label] = Array.isArray(answers.q10) ? answers.q10.join(', ') : 'Not answered';
+    } else if (answers[q.id] !== undefined && q.options) {
+      answers_summary[label] = q.options[answers[q.id]].label;
+    }
+  });
+
+  const payload = {
+    email,
+    name: name || null,
+    score: window._scoreData.score,
+    tier: window._scoreData.tier,
+    answers_summary,
+    industry: answers.q7 ? answers.q7.name : null,
+    industry_risk: answers.q7 ? answers.q7.risk : null,
+    loan_types: Array.isArray(answers.q10) ? answers.q10 : []
+  };
+
+  try {
+    const res = await fetch('https://syhwaeloljdswsmqkzrx.supabase.co/functions/v1/submit-score', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer sb_publishable_kQrtxdvnex0ObqoI0UXNLQ_-1FVABOM'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) throw new Error('Network error');
+    showStep('step-thankyou');
+  } catch (e) {
+    // Still show thank you — don't block UX on API failure
+    console.error('Supabase error:', e);
+    showStep('step-thankyou');
+  }
+}
+</script>
+</body>
+</html>
