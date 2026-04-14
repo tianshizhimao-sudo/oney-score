@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#1A1A2E">
+  <meta name="theme-color" content="#0a0a0a">
   <title>Bank-Ready Score — Is Your Business Ready for a Bank Loan? | Oney & Co</title>
   <meta name="description" content="Find out if your business is ready for a bank loan — in 5 minutes. Free Bank-Ready Score tool built by an experienced commercial banker.">
   <meta property="og:title" content="Bank-Ready Score — Oney & Co">
@@ -15,16 +15,19 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #1A1A2E;
-      --bg-secondary: #16162A;
-      --card: #252540;
-      --border: #3D3D5C;
+      --bg: #0a0a0a;
+      --bg-secondary: #0f0f1a;
+      --card: rgba(37,37,64,0.92);
+      --card-solid: #252540;
+      --border: rgba(255,255,255,0.10);
+      --border-solid: #3D3D5C;
       --accent: #2ECC85;
-      --accent-glow: rgba(46, 204, 133, 0.1);
+      --accent-glow: rgba(46,204,133,0.15);
       --green: #2ECC85;
       --green-dark: #1FAD73;
       --text: #ffffff;
-      --text-muted: #a3a3b8;
+      --text-muted: rgba(255,255,255,0.55);
+      --text-secondary: rgba(255,255,255,0.70);
       --green-gradient: linear-gradient(135deg, #2ECC85, #1FAD73);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -37,14 +40,11 @@
       -webkit-font-smoothing: antialiased;
       position: relative;
     }
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
-      background-size: 32px 32px;
-      pointer-events: none;
-      z-index: 0;
+    .ambient-bg {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background:
+        radial-gradient(circle at top right, rgba(107,76,154,0.18), transparent 28%),
+        radial-gradient(circle at top left, rgba(46,204,133,0.12), transparent 24%);
     }
     body > * { position: relative; z-index: 1; }
     .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
@@ -55,7 +55,7 @@
 
     /* Purple theme */
     html[data-theme="purple"] {
-      --bg: #0D0D1A; --bg-secondary: #0A0A15; --card: #1A1228; --border: #3D2D5C;
+      --bg: #0D0D1A; --bg-secondary: #0A0A15; --card: rgba(26,18,40,0.92); --card-solid: #1A1228; --border: rgba(61,45,92,0.5); --border-solid: #3D2D5C;
       --accent: #9B59B6; --accent-glow: rgba(155,89,182,0.1);
       --green: #9B59B6; --green-dark: #6B4C9A;
       --text: #ffffff; --text-muted: #b8a9c9;
@@ -68,7 +68,11 @@
     html[data-theme="purple"] .hero::before { background: radial-gradient(circle,rgba(155,89,182,0.12) 0%,rgba(107,76,154,0.08) 40%,transparent 70%); }
     html[data-theme="purple"] .hero-orb-1 { background: rgba(155,89,182,0.08); }
     html[data-theme="purple"] .hero-orb-2 { background: rgba(107,76,154,0.1); }
-    html[data-theme="purple"] nav { background: rgba(13,13,26,0.85); border-bottom-color: rgba(61,45,92,0.5); }
+    html[data-theme="purple"] nav { background: rgba(13,13,26,0.80); border-bottom-color: rgba(61,45,92,0.5); }
+    html[data-theme="purple"] .ambient-bg {
+      background: radial-gradient(circle at top right, rgba(155,89,182,0.18), transparent 28%),
+                  radial-gradient(circle at top left, rgba(155,89,182,0.10), transparent 24%);
+    }
     html[data-theme="purple"] body::before { background-image: radial-gradient(circle,rgba(155,89,182,0.03) 1px,transparent 1px); }
     html[data-theme="purple"] .theme-switcher { background: rgba(155,89,182,0.08); border-color: rgba(155,89,182,0.15); }
     html[data-theme="purple"] .feature-card:hover { border-color: rgba(155,89,182,0.4); }
@@ -92,6 +96,12 @@
     html[data-theme="light"] .hero-orb-2 { background: rgba(107,76,154,0.06); }
     html[data-theme="light"] .hero-cta { color: #fff; }
     html[data-theme="light"] .theme-switcher { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.08); }
+    html[data-theme="light"] .nav-logo-text { color: #1A1A2E; }
+    html[data-theme="light"] .nav-logo-icon-inner { background: var(--bg); }
+    html[data-theme="light"] .ambient-bg {
+      background: radial-gradient(circle at top right, rgba(107,76,154,0.06), transparent 28%),
+                  radial-gradient(circle at top left, rgba(46,204,133,0.05), transparent 24%);
+    }
     html[data-theme="light"] footer { border-top-color: rgba(226,232,240,0.6); }
     html[data-theme="light"] .how-section { border-top-color: rgba(226,232,240,0.6); border-bottom-color: rgba(226,232,240,0.6); }
     html[data-theme="light"] .feature-card { background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
@@ -99,17 +109,27 @@
 
     /* Nav */
     nav {
-      background: rgba(26,26,46,0.85);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border-bottom: 1px solid rgba(61,61,92,0.5);
+      background: rgba(10,10,10,0.80);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
       padding: 16px 0;
       position: sticky;
       top: 0;
       z-index: 100;
     }
     .nav-inner { display: flex; align-items: center; justify-content: space-between; }
-    .nav-logo svg { height: 40px; }
+    .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .nav-logo-icon {
+      width: 32px; height: 32px; border-radius: 50%; padding: 3px;
+      background: conic-gradient(from 180deg at 50% 50%, #2ECC85 0deg, #6B4C9A 220deg, #2ECC85 360deg);
+    }
+    .nav-logo-icon-inner { width: 100%; height: 100%; border-radius: 50%; background: var(--bg); }
+    .nav-logo-text { font-size: 20px; font-weight: 600; color: #fff; letter-spacing: -0.5px; }
+    .nav-logo-text .amp {
+      background: linear-gradient(135deg, #2ECC85, #6B4C9A);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
     .nav-right { display: flex; align-items: center; gap: 12px; }
     .nav-links { display: flex; align-items: center; gap: 20px; list-style: none; }
     .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 13px; font-weight: 500; transition: color 0.2s; }
@@ -134,7 +154,7 @@
       position: relative;
     }
     .theme-dot:hover { transform: scale(1.15); }
-    .theme-dot[data-theme="dark"] { background: #1A1A2E; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2); }
+    .theme-dot[data-theme="dark"] { background: #0a0a0a; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2); }
     .theme-dot[data-theme="purple"] { background: #9B59B6; }
     .theme-dot[data-theme="light"] { background: #F8F9FC; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1); }
     .theme-dot.active { border-color: var(--accent); transform: scale(1.15); }
@@ -213,8 +233,10 @@
     .section-title p { font-size: 17px; color: var(--text-muted); }
     .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr)); gap: 24px; }
     .feature-card {
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: 20px; padding: 36px 32px;
+      background: linear-gradient(180deg, rgba(37,37,64,0.92), rgba(18,18,30,0.94));
+      border: 1px solid var(--border); border-radius: 20px; padding: 36px 32px;
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
       transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
       opacity: 0; transform: translateY(24px);
     }
@@ -235,7 +257,7 @@
 
     /* How it works */
     .how-section {
-      padding: 80px 0; background: var(--bg-secondary);
+      padding: 80px 0; background: rgba(15,15,26,0.95);
       border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
     }
     .steps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap: 32px; }
@@ -258,7 +280,9 @@
     /* CTA */
     .cta-section { padding: 100px 0; text-align: center; }
     .cta-box {
-      background: var(--card); border: 1px solid rgba(46,204,133,0.2);
+      background: linear-gradient(180deg, rgba(37,37,64,0.92), rgba(18,18,30,0.94));
+      border: 1px solid rgba(46,204,133,0.2);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
       border-radius: 24px; padding: 64px 48px;
       max-width: 680px; margin: 0 auto; position: relative; overflow: hidden;
       opacity: 0; transform: translateY(24px);
@@ -281,22 +305,14 @@
   </style>
 </head>
 <body>
+  <div class="ambient-bg"></div>
 
   <nav>
     <div class="container">
       <div class="nav-inner">
         <a href="https://oneyco.com.au" class="nav-logo" aria-label="Oney & Co Home">
-          <svg viewBox="0 0 210 90" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="fillGrad" x1="0%" y1="100%" x2="0%" y2="0%"><stop offset="0%" style="stop-color:#1FAD73"/><stop offset="55%" style="stop-color:#2ECC85"/><stop offset="55%" style="stop-color:transparent"/><stop offset="100%" style="stop-color:transparent"/></linearGradient>
-              <linearGradient id="strokeGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#2ECC85"/><stop offset="100%" style="stop-color:#1FAD73"/></linearGradient>
-            </defs>
-            <g transform="translate(40, 45)"><circle cx="0" cy="0" r="32" fill="none" stroke="url(#strokeGrad)" stroke-width="7"/><circle cx="0" cy="0" r="24" fill="url(#fillGrad)"/></g>
-            <text x="82" y="52" font-family="Inter, system-ui, sans-serif" font-size="28" font-weight="600" fill="#ffffff" letter-spacing="-0.5">ney</text>
-            <text x="129" y="52" font-family="Inter, system-ui, sans-serif" font-size="21" font-weight="500" fill="url(#strokeGrad)">&amp;</text>
-            <text x="148" y="52" font-family="Inter, system-ui, sans-serif" font-size="28" font-weight="600" fill="#ffffff" letter-spacing="-0.5">co</text>
-            <circle cx="182" cy="48" r="4" fill="#6B4C9A"/>
-          </svg>
+          <div class="nav-logo-icon"><div class="nav-logo-icon-inner"></div></div>
+          <span class="nav-logo-text">Oney <span class="amp">&amp;</span> Co</span>
         </a>
         <div class="nav-right">
           <ul class="nav-links">
@@ -423,7 +439,7 @@
 
     // Theme switcher
     (function() {
-      const saved = localStorage.getItem('score-theme') || 'dark';
+      const saved = localStorage.getItem('oney-theme') || 'dark';
       document.documentElement.classList.add('no-transition');
       document.documentElement.setAttribute('data-theme', saved);
       requestAnimationFrame(() => requestAnimationFrame(() => {
@@ -438,7 +454,7 @@
         if (!dot) return;
         const theme = dot.dataset.theme;
         document.documentElement.setAttribute('data-theme', theme);
-        localStorage.setItem('score-theme', theme);
+        localStorage.setItem('oney-theme', theme);
         document.querySelectorAll('.theme-dot').forEach(d => {
           d.classList.toggle('active', d.dataset.theme === theme);
           d.setAttribute('aria-checked', d.dataset.theme === theme);
