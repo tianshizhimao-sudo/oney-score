@@ -259,7 +259,11 @@
     var primary = el('a', {
       class: 'btn-purple',
       href: 'https://oneyco.com.au/',
-      text: 'Talk to Oney'
+      text: 'Talk to Oney',
+      dataset: { analytics: 'cta' }
+    });
+    primary.addEventListener('click', function () {
+      if (typeof window.trackEvent === 'function') window.trackEvent('score_cta_clicked');
     });
     actions.appendChild(primary);
 

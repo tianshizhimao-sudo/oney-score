@@ -4,6 +4,57 @@
 
   var STORAGE_KEY = 'oney-score-bank-ready';
 
+  /* ---------------- Analytics: whitelisted, silent-degrading ---------------- */
+  // Only these events + param keys are ever forwarded to dataLayer / gtag.
+  // Anything else is dropped. No raw answers, no free-text, no PII.
+  var ALLOWED_EVENTS = {
+    score_started:        [],
+    score_step_completed: ['step_id', 'step_index'],
+    score_completed:      ['score_total', 'score_band'],
+    score_restart:        [],
+    score_cta_clicked:    []
+  };
+
+  function safeCall(fn) {
+    try { fn(); } catch (e) { /* analytics must never break the tool */ }
+  }
+
+  function trackEvent(eventName, payload) {
+    var allowedKeys = ALLOWED_EVENTS[eventName];
+    if (!allowedKeys) return; // block unknown events outright
+
+    var cleaned = {};
+    if (payload) {
+      for (var i = 0; i < allowedKeys.length; i++) {
+        var k = allowedKeys[i];
+        if (payload[k] != null) cleaned[k] = payload[k];
+      }
+    }
+
+    // GTM: dataLayer.push({ event, ...cleaned })
+    safeCall(function () {
+      if (window.dataLayer && typeof window.dataLayer.push === 'function') {
+        var frame = { event: eventName };
+        for (var k in cleaned) if (cleaned.hasOwnProperty(k)) frame[k] = cleaned[k];
+        window.dataLayer.push(frame);
+      }
+    });
+
+    // GA4 / gtag.js
+    safeCall(function () {
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', eventName, cleaned);
+      }
+    });
+  }
+
+  // Compatibility layer: anything in the page can call window.trackEvent(...)
+  // and get the same whitelist guarantees. If a trackEvent already exists
+  // (e.g. defined by a shared brand.js), we leave it alone.
+  if (typeof window.trackEvent !== 'function') {
+    window.trackEvent = trackEvent;
+  }
+
   function OneyScoreEngine(config) {
     if (!(this instanceof OneyScoreEngine)) return new OneyScoreEngine(config);
     this.config = config || {};
@@ -74,14 +125,10 @@
   };
 
   OneyScoreEngine.prototype.track = function (event, payload) {
-    var data = payload || {};
-    data.tool = this.config.name || 'bank-ready-score';
-    if (typeof window.dataLayer !== 'undefined' && window.dataLayer.push) {
-      window.dataLayer.push(Object.assign({ event: event }, data));
-    }
-    if (typeof window.gtag === 'function') {
-      window.gtag('event', event, data);
-    }
+    // Delegate to the whitelisted tracker. If the host page has defined its
+    // own window.trackEvent (same signature), honour it.
+    var tracker = (typeof window.trackEvent === 'function') ? window.trackEvent : trackEvent;
+    tracker(event, payload);
   };
 
   OneyScoreEngine.prototype.start = function () {
@@ -143,7 +190,10 @@
   OneyScoreEngine.prototype.next = function () {
     if (!this.canContinue()) return;
     var idx = this.state.currentStep;
-    this.track('score_step_completed', { step: this.schema[idx].id, index: idx + 1 });
+    this.track('score_step_completed', {
+      step_id: this.schema[idx].id,
+      step_index: idx + 1
+    });
 
     if (idx >= this.schema.length - 1) {
       this.finish();
@@ -171,8 +221,8 @@
     this.result = this.evaluate(this.state.answers);
     this.completed = true;
     this.track('score_completed', {
-      total: this.result.total,
-      band: this.result.band
+      score_total: this.result.total,
+      score_band: this.result.band
     });
 
     if (this.mounts.step) {
@@ -237,7 +287,8 @@
   function wireCtaAnalytics(engine) {
     document.querySelectorAll('[data-analytics="cta"]').forEach(function (link) {
       link.addEventListener('click', function () {
-        engine.track('score_cta_clicked', { label: link.dataset.label || link.textContent.trim() });
+        // No PII / free-text forwarded: CTA label stays out of the payload.
+        engine.track('score_cta_clicked');
       });
     });
   }
