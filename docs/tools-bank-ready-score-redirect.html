@@ -1,0 +1,47 @@
+<!--
+  Deploy target: tools.oneyco.com.au/bank-ready-score.html
+  Purpose:       collapse the duplicate entry into score.oneyco.com.au.
+
+  Deploy order of preference (pick ONE — do not double up):
+
+    1. Host-level 301 (preferred — best for SEO and analytics attribution)
+         Cloudflare Page Rule:
+           tools.oneyco.com.au/bank-ready-score.html
+           -> 301 https://score.oneyco.com.au/#assessment
+
+         Netlify _redirects (root of tools site):
+           /bank-ready-score.html  https://score.oneyco.com.au/#assessment  301!
+
+         Nginx:
+           location = /bank-ready-score.html {
+             return 301 https://score.oneyco.com.au/#assessment;
+           }
+
+    2. Thin redirect page (fallback — use THIS file if host-level 301 is not available).
+       Keep it thin: no CSS/JS from score, no layout, no analytics. meta refresh + JS
+       replace + canonical + noindex is enough for crawlers and real browsers.
+
+  Do NOT copy any score.* HTML/CSS/JS here. One source of truth lives at
+  score.oneyco.com.au.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="refresh" content="0; url=https://score.oneyco.com.au/#assessment">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bank-Ready Score — moved to score.oneyco.com.au</title>
+  <meta name="description" content="The Bank-Ready Score tool now lives at score.oneyco.com.au.">
+  <meta name="robots" content="noindex,follow">
+  <link rel="canonical" href="https://score.oneyco.com.au/">
+  <script>
+    // Client-side replace so the old URL does not stay in browser history.
+    try { location.replace('https://score.oneyco.com.au/#assessment'); } catch (_) {}
+  </script>
+</head>
+<body style="font:15px/1.6 system-ui,-apple-system,sans-serif;margin:40px;color:#1a1a2e;background:#f8f9fc">
+  <p>The Bank-Ready Score has moved to
+     <a href="https://score.oneyco.com.au/#assessment"
+        style="color:#1fad73;text-decoration:underline">score.oneyco.com.au</a>.</p>
+</body>
+</html>

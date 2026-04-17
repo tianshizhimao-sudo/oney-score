@@ -130,8 +130,9 @@ html[data-theme="purple"] .result-score .score-value {
   height: 168px;
   border-radius: 50%;
   position: relative;
-  background:
-    conic-gradient(var(--accent) var(--dial-pct, 0deg), rgba(255, 255, 255, 0.08) 0);
+  /* Fallback for browsers without conic-gradient (older Android WebView).
+     Degrades to a solid accent ring — the score number inside stays legible. */
+  background: var(--accent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -139,8 +140,18 @@ html[data-theme="purple"] .result-score .score-value {
   box-shadow: 0 10px 32px rgba(0, 0, 0, 0.3);
 }
 html[data-theme="light"] .result-dial {
-  background: conic-gradient(var(--accent-dark) var(--dial-pct, 0deg), rgba(15, 23, 42, 0.08) 0);
+  background: var(--accent-dark);
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+/* Real conic-gradient dial — placed last so it wins in supporting browsers. */
+@supports (background: conic-gradient(red 0deg, blue 0deg)) {
+  .result-dial {
+    background:
+      conic-gradient(var(--accent) var(--dial-pct, 0deg), rgba(255, 255, 255, 0.08) 0);
+  }
+  html[data-theme="light"] .result-dial {
+    background: conic-gradient(var(--accent-dark) var(--dial-pct, 0deg), rgba(15, 23, 42, 0.08) 0);
+  }
 }
 .result-dial::after {
   content: '';
@@ -179,6 +190,7 @@ html[data-theme="light"] .result-dial::after { background: #fff; }
     linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01)),
     var(--card);
   backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border-radius: var(--radius-lg);
   padding: 16px;
   display: flex;
@@ -234,6 +246,7 @@ html[data-theme="light"] .criteria-bar { background: rgba(15, 23, 42, 0.08); }
     linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)),
     var(--card);
   backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   border-radius: var(--radius-xl);
   padding: 28px;
   box-shadow: var(--shadow-lg);
