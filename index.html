@@ -17,6 +17,24 @@
   <link rel="stylesheet" href="assets/css/score.css">
   <link rel="stylesheet" href="assets/css/score-results.css">
   <link rel="stylesheet" href="assets/css/score-report.css">
+
+  <!-- Backend config for the Generate-my-lending-report flow.
+       Absent → adapter defaults to mock mode.
+       See docs/report-integration.md for the full config contract. -->
+  <script>
+    window.ONEY_REPORT_CONFIG = {
+      mode: 'live',
+      apiBaseUrl: 'https://oney-score-api.oneyco.workers.dev',
+      endpoints: {
+        submitReport: '/score-report/submit',
+        getReport:    '/score-report/report',
+        unsubscribe:  '/score-report/unsubscribe'
+      },
+      productVersion:    'bank-ready-score-v1',
+      scoringVersion:    'bank-ready-v1',
+      disclaimerVersion: '2026-04'
+    };
+  </script>
 </head>
 <body>
   <div class="ambient-bg" aria-hidden="true"></div>
