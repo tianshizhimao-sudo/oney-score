@@ -351,6 +351,17 @@ html[data-theme="light"] .report-share-block {
   color: #0f172a;
 }
 .report-doc-nav { background: #ffffff; border-bottom: 1px solid #e5e7eb; }
+/* The brand nav logo ships white-on-dark by default. The report page
+   always runs on a white background, so scope a dark-text override
+   here rather than relying on the dark-theme preset. */
+.report-doc-nav .nav-logo-text { color: #0f172a; }
+.report-doc-nav .nav-logo-text .amp {
+  background: linear-gradient(135deg, #1fad73, #6b4c9a);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.report-doc-nav .nav-logo-icon-inner { background: #ffffff; }
 .report-doc-nav .nav-inner {
   max-width: 960px;
   margin: 0 auto;
