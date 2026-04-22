@@ -220,16 +220,17 @@
 
   /* ---------------- Report URL builder + resolver ---------------- */
 
-  /* Canonical report URL:
-       mock mode → hash-encoded payload (4KB-ish, safe to share)
-       live mode → id-based link resolved server-side
-     Renderer is URL-strategy-agnostic (see score.report.view.js). */
+  /* Canonical report URL.
+     Currently always hash-encoded (works in mock + live). The `?id=`
+     form is reserved for when `GET /score-report/report/:id` is
+     implemented in the worker — until then, hash-encoded is strictly
+     better: PII-stripped (see encodePayloadForUrl), cross-device, no
+     backend dependency on the viewer side, safe to share via email
+     or forward to a broker. Renderer already handles both (see
+     score.report.view.js). */
   function buildReportUrl(payload, cfg) {
     cfg = cfg || getConfig();
     var base = cfg.reportViewerUrl;
-    if (cfg.mode === 'live') {
-      return base + '?id=' + encodeURIComponent(payload.report.report_id);
-    }
     return base + '#r=' + encodePayloadForUrl(payload);
   }
 
