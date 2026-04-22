@@ -16,7 +16,14 @@
     score_cta_clicked:      [],
     score_insight_started:  [],
     score_insight_skipped:  [],
-    score_insight_completed:['insight_answered']
+    score_insight_completed:['insight_answered'],
+    report_generate_clicked:[],
+    report_modal_opened:    [],
+    report_submitted:       [],
+    report_email_sent:      [],
+    report_share_enabled:   [],
+    report_shared_to_broker:[],
+    oney_follow_up_opted_in:[]
   };
 
   function safeCall(fn) {
@@ -446,11 +453,22 @@
       var engine = this;
       window.OneyScoreUI.renderResult(this.mounts.result, this.result, this.insightResult, {
         onRestart: function () { engine.restart(); },
-        onAddInsights: function () { engine.reopenInsights(); }
+        onAddInsights: function () { engine.reopenInsights(); },
+        onGenerateReport: function () { engine.openReportModal(); }
       });
     }
     this.swapSupportForSummary();
     this.scrollToAssessment();
+  };
+
+  OneyScoreEngine.prototype.openReportModal = function () {
+    if (!window.OneyReportModal || !this.result) return;
+    window.OneyReportModal.open({
+      result: this.result,
+      insightResult: this.insightResult,
+      coreAnswers: this.state.coreAnswers,
+      insightAnswers: this.state.insightAnswers
+    });
   };
 
   OneyScoreEngine.prototype.reopenInsights = function () {

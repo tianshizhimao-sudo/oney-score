@@ -1,0 +1,64 @@
+<!--
+  Email template: broker / lender review (type=broker_share)
+  Only sent when payload.lead.share.enabled === true AND payload.lead.share.consent_share === true.
+
+  Tokens:
+    {{lead.first_name}}
+    {{lead.business_name}}
+    {{overall_score}}
+    {{readiness_label}}
+    {{insight.profile_summary.strongestArea}}
+    {{insight.profile_summary.weakestArea}}
+    {{report_url}}
+    {{disclaimer}}
+-->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{lead.first_name}} shared a Bank-Ready Score report for review</title>
+  </head>
+  <body style="margin:0;padding:0;background:#f5f6f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f5f6f9;padding:32px 16px;">
+      <tr><td align="center">
+        <table role="presentation" width="560" cellspacing="0" cellpadding="0" style="max-width:560px;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e5e7eb;">
+          <tr><td style="padding:28px 28px 8px;">
+            <p style="margin:0 0 8px;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:#6b7280;font-weight:600;">Shared via Oney Bank-Ready Score</p>
+            <h1 style="margin:0 0 12px;font-size:20px;line-height:1.3;color:#0f172a;">
+              {{lead.first_name}}{{#lead.business_name}} ({{lead.business_name}}){{/lead.business_name}} has shared their Bank-Ready Score report with you for review.
+            </h1>
+            <p style="margin:0 0 16px;font-size:14px;line-height:1.55;color:#334155;">
+              They’ve generated the report themselves and asked Oney to send it on.
+              It’s a readiness signal from a banker-built tool — <strong>not credit approval and not a formal recommendation</strong>.
+            </p>
+          </td></tr>
+
+          <tr><td style="padding:8px 28px 16px;">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:12px;">
+              <tr><td style="padding:18px 20px;">
+                <p style="margin:0 0 6px;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:#475569;font-weight:600;">Summary</p>
+                <p style="margin:0 0 4px;font-size:24px;font-weight:700;color:#0f172a;">{{overall_score}} / 100 · {{readiness_label}}</p>
+                <p style="margin:0;font-size:13px;color:#475569;">
+                  Strongest: {{insight.profile_summary.strongestArea}} ·
+                  Weakest: {{insight.profile_summary.weakestArea}}
+                </p>
+              </td></tr>
+            </table>
+          </td></tr>
+
+          <tr><td style="padding:8px 28px 24px;">
+            <a href="{{report_url}}" style="display:inline-block;background:#6b4c9a;color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:10px;font-weight:600;font-size:14px;">Open full report</a>
+            <p style="margin:14px 0 0;font-size:13px;color:#475569;">
+              If you need anything added before a formal review (tax position, statements, exposure schedule), please reply to {{lead.first_name}} directly — Oney is not holding a file for this client.
+            </p>
+          </td></tr>
+
+          <tr><td style="padding:16px 28px 24px;border-top:1px solid #e5e7eb;">
+            <p style="margin:0;font-size:11px;line-height:1.55;color:#64748b;">{{disclaimer}}</p>
+          </td></tr>
+        </table>
+      </td></tr>
+    </table>
+  </body>
+</html>

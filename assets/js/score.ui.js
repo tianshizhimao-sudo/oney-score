@@ -353,6 +353,14 @@
       var scoreEl = mount.querySelector('.score-value');
       if (scoreEl) animateCountUp(scoreEl, result.total);
     });
+
+    // Swap the result actions into a success state when the report
+    // capture modal reports success. Handler is wired once per render.
+    var onGenerated = function (e) {
+      if (!e || !e.detail) return;
+      swapActionsToSuccess(mount, e.detail.payload, e.detail.result, handlers);
+    };
+    window.addEventListener('oney:report:generated', onGenerated, { once: true });
   }
 
   function buildResultHero(result) {
@@ -499,23 +507,48 @@
     });
     card.appendChild(list);
 
-    var actions = el('div', { class: 'result-actions' });
-    var primary = el('a', {
+    var actions = el('div', { class: 'result-actions result-actions-report' });
+    actions.dataset.slot = 'result-actions';
+
+    var primary = el('button', {
+      type: 'button',
       class: 'btn-purple',
-      href: 'https://oneyco.com.au/',
-      text: 'Talk to Oney',
-      dataset: { analytics: 'cta' }
+      text: 'Generate my lending report'
     });
     primary.addEventListener('click', function () {
-      if (typeof window.trackEvent === 'function') window.trackEvent('score_cta_clicked');
+      if (typeof window.trackEvent === 'function') window.trackEvent('report_generate_clicked');
+      if (window.OneyReportModal && typeof handlers.onGenerateReport === 'function') {
+        handlers.onGenerateReport();
+      } else if (window.OneyReportModal) {
+        // Fallback: open without extra context (shouldn't happen in practice)
+        window.OneyReportModal.open({ result: {}, insightResult: null });
+      }
     });
     actions.appendChild(primary);
 
-    var restart = el('button', { type: 'button', class: 'btn-ghost', text: 'Start again' });
+    var review = el('a', {
+      class: 'btn-ghost',
+      href: 'https://oneyco.com.au/',
+      text: 'Request Oney review',
+      target: '_blank',
+      rel: 'noopener',
+      dataset: { analytics: 'cta' }
+    });
+    review.addEventListener('click', function () {
+      if (typeof window.trackEvent === 'function') window.trackEvent('score_cta_clicked');
+    });
+    actions.appendChild(review);
+
+    var restart = el('button', { type: 'button', class: 'btn-link', text: 'Start again' });
     restart.addEventListener('click', handlers.onRestart);
     actions.appendChild(restart);
 
     card.appendChild(actions);
+
+    card.appendChild(el('p', {
+      class: 'result-actions-hint',
+      text: 'Email yourself a clear lending summary, or send it to your broker or lender for review.'
+    }));
 
     card.appendChild(el('p', {
       class: 'result-disclaimer',
@@ -523,6 +556,72 @@
     }));
 
     return card;
+  }
+
+  /* ---------------- Success state on result page ---------------- */
+  function swapActionsToSuccess(mount, payload, submitResult, handlers) {
+    var slot = mount.querySelector('[data-slot="result-actions"]');
+    if (!slot) return;
+
+    var hint = mount.querySelector('.result-actions-hint');
+    if (hint) hint.remove();
+
+    clear(slot);
+    slot.classList.add('result-actions-success');
+
+    var banner = el('div', { class: 'result-success-banner', role: 'status', 'aria-live': 'polite' });
+    banner.appendChild(el('span', { class: 'result-success-tick', 'aria-hidden': 'true', html: '&#10003;' }));
+
+    var copy = el('div', { class: 'result-success-copy' });
+    copy.appendChild(el('p', { class: 'result-success-title', text: 'Report ready' }));
+
+    var lines = [];
+    var userOk = submitResult && submitResult.userEmail && submitResult.userEmail.ok;
+    lines.push(userOk
+      ? 'A copy has been sent to ' + payload.lead.email + '.'
+      : 'Your report is ready below — open or download it now.');
+    if (payload.lead.share && payload.lead.share.enabled) {
+      var brokerOk = submitResult && submitResult.brokerEmail && submitResult.brokerEmail.ok;
+      lines.push(brokerOk
+        ? 'A copy has also been shared with ' + (payload.lead.share.broker_email || 'your broker') + '.'
+        : 'Sharing with ' + (payload.lead.share.broker_email || 'your broker') + ' is queued.');
+    }
+    lines.forEach(function (line) {
+      copy.appendChild(el('p', { class: 'result-success-line', text: line }));
+    });
+    banner.appendChild(copy);
+
+    slot.appendChild(banner);
+
+    var actions = el('div', { class: 'result-success-actions' });
+    var download = el('a', {
+      class: 'btn-purple',
+      href: submitResult && submitResult.reportUrl ? submitResult.reportUrl : '#',
+      target: '_blank',
+      rel: 'noopener',
+      text: 'Download report'
+    });
+    actions.appendChild(download);
+
+    var another = el('button', { type: 'button', class: 'btn-ghost', text: 'Email another copy' });
+    another.addEventListener('click', function () {
+      if (typeof handlers.onGenerateReport === 'function') handlers.onGenerateReport();
+    });
+    actions.appendChild(another);
+
+    var review = el('a', {
+      class: 'btn-link',
+      href: 'https://oneyco.com.au/',
+      target: '_blank',
+      rel: 'noopener',
+      text: 'Request Oney review'
+    });
+    review.addEventListener('click', function () {
+      if (typeof window.trackEvent === 'function') window.trackEvent('score_cta_clicked');
+    });
+    actions.appendChild(review);
+
+    slot.appendChild(actions);
   }
 
   /* ---------------- Utilities ---------------- */

@@ -1,0 +1,51 @@
+<!--
+  Email / webhook body: internal Oney notification (type=internal_lead)
+  Intended for fast triage — either surfaced to a channel (Slack / Teams)
+  or sent to an inbox. Field names follow the raw report payload so a
+  CRM adapter can consume the same shape.
+
+  Tokens mirror the JSON payload directly.
+-->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>New Bank-Ready Score lead — {{lead.first_name}}</title>
+  </head>
+  <body style="margin:0;padding:16px;background:#ffffff;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#0f172a;font-size:13px;line-height:1.55;">
+    <h2 style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:16px;margin:0 0 12px;">
+      New Bank-Ready Score lead
+    </h2>
+
+    <table cellspacing="0" cellpadding="6" style="border-collapse:collapse;font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:13px;">
+      <tr><td style="color:#64748b;">Report ID</td><td>{{report_id}}</td></tr>
+      <tr><td style="color:#64748b;">Generated</td><td>{{created_at}}</td></tr>
+      <tr><td style="color:#64748b;">Name</td><td>{{lead.first_name}}</td></tr>
+      <tr><td style="color:#64748b;">Email</td><td><a href="mailto:{{lead.email}}">{{lead.email}}</a></td></tr>
+      <tr><td style="color:#64748b;">Business</td><td>{{lead.business_name}}</td></tr>
+      <tr><td style="color:#64748b;">Mobile</td><td>{{lead.mobile}}</td></tr>
+      <tr><td style="color:#64748b;">Score</td><td><strong>{{overall_score}}</strong> / 100 — {{readiness_label}}</td></tr>
+      <tr><td style="color:#64748b;">Next step</td><td>{{next_step}}</td></tr>
+      <tr><td style="color:#64748b;">Lead segment</td><td>{{insight.lead_segment}}</td></tr>
+      <tr><td style="color:#64748b;">Follow-up opt-in</td><td>{{#lead.consent_followup}}Yes{{/lead.consent_followup}}{{^lead.consent_followup}}No{{/lead.consent_followup}}</td></tr>
+      <tr><td style="color:#64748b;">Shared with recipient</td><td>{{#lead.share.enabled}}Yes — {{lead.share.broker_email}}{{/lead.share.enabled}}{{^lead.share.enabled}}No{{/lead.share.enabled}}</td></tr>
+    </table>
+
+    <h3 style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;margin:20px 0 8px;">Profile tags</h3>
+    <ul style="margin:0 0 16px 18px;padding:0;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">
+      {{#insight.profile_tags}}
+        <li>{{label}} <span style="color:#64748b;">({{tone}})</span></li>
+      {{/insight.profile_tags}}
+    </ul>
+
+    <h3 style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;margin:20px 0 8px;">Top 3 actions</h3>
+    <ol style="margin:0 0 16px 18px;padding:0;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">
+      {{#top_actions}}
+        <li style="margin-bottom:6px;"><strong>{{label}}.</strong> {{text}}</li>
+      {{/top_actions}}
+    </ol>
+
+    <h3 style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;margin:20px 0 8px;">Raw payload</h3>
+    <pre style="background:#0f172a;color:#e2e8f0;padding:12px;border-radius:8px;white-space:pre-wrap;word-break:break-word;font-size:11px;">{{raw_payload_json}}</pre>
+  </body>
+</html>
