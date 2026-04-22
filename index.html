@@ -133,13 +133,17 @@
   <script src="assets/js/brand.js"></script>
   <script src="assets/js/score.schema.js"></script>
   <script src="assets/js/score.logic.js"></script>
+  <script src="assets/js/score.insights.schema.js"></script>
+  <script src="assets/js/score.insights.logic.js"></script>
   <script src="assets/js/score.ui.js"></script>
   <script src="assets/js/score.engine.js"></script>
   <script>
     OneyScoreEngine.create({
       name: 'bank-ready-score',
       schema: window.SCORE_SCHEMA,
-      evaluate: window.evaluateBankReadyScore
+      evaluate: window.evaluateBankReadyScore,
+      insightSchema: window.INSIGHT_SCHEMA,
+      evaluateInsights: window.evaluateInsights
     });
   </script>
 </body>

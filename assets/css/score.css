@@ -382,6 +382,143 @@ html[data-theme="light"] .cta-band-inner { background: #fff; }
   margin: 0 auto;
 }
 
+/* Insight progress rail (2-segment, no numbering) */
+.progress-rail-insight {
+  grid-auto-columns: minmax(0, 1fr);
+  max-width: 140px;
+  opacity: 0.7;
+}
+.progress-meta-insight .meta-title {
+  color: var(--text);
+}
+.progress-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+  margin: -10px 0 18px;
+}
+
+/* Link-style button used for skip affordances */
+.btn-link {
+  background: transparent;
+  border: 0;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 6px 4px;
+}
+.btn-link:hover { color: var(--text); }
+.btn-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+/* Transition card — visually lighter than the core step card */
+.step-card-transition {
+  background:
+    linear-gradient(180deg, rgba(107, 76, 154, 0.08), rgba(46, 204, 133, 0.04)),
+    var(--card);
+  border-style: solid;
+  position: relative;
+  overflow: hidden;
+}
+html[data-theme="light"] .step-card-transition {
+  background:
+    linear-gradient(180deg, rgba(107, 76, 154, 0.05), rgba(46, 204, 133, 0.03)),
+    #fff;
+}
+.step-card-transition::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at top right, rgba(107, 76, 154, 0.14), transparent 45%),
+    radial-gradient(circle at bottom left, rgba(46, 204, 133, 0.1), transparent 40%);
+  pointer-events: none;
+}
+html[data-theme="light"] .step-card-transition::before {
+  background:
+    radial-gradient(circle at top right, rgba(107, 76, 154, 0.05), transparent 40%),
+    radial-gradient(circle at bottom left, rgba(31, 173, 115, 0.05), transparent 40%);
+}
+.step-card-transition > * { position: relative; z-index: 1; }
+
+.insight-transition-eyebrow,
+.insight-group-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+}
+.insight-transition-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--purple-light);
+  box-shadow: 0 0 10px rgba(181, 155, 214, 0.5);
+}
+.insight-transition-title {
+  font-size: clamp(22px, 3vw, 30px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 10px;
+}
+.insight-transition-body {
+  color: var(--text-secondary);
+  font-size: 15px;
+  max-width: 640px;
+  margin-bottom: 14px;
+  line-height: 1.6;
+}
+.insight-transition-note {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 22px;
+}
+.insight-transition-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+/* Insight group card — slightly lighter container than core step card */
+.step-card-insight .insight-group-header {
+  margin-bottom: 8px;
+}
+.insight-optional-pill {
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+}
+html[data-theme="light"] .insight-optional-pill {
+  background: #fff;
+}
+.step-card-insight .step-description {
+  margin-bottom: 8px;
+}
+.insight-question + .insight-question {
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px dashed var(--border);
+}
+.insight-choice-grid .choice-card {
+  padding: 14px 16px;
+  font-size: 13.5px;
+}
+.insight-skip-link {
+  flex: 1;
+  text-align: center;
+}
+
 /* Mobile */
 @media (max-width: 980px) {
   .score-hero-inner,
@@ -415,8 +552,17 @@ html[data-theme="light"] .cta-band-inner { background: #fff; }
     width: 100%;
     justify-content: center;
   }
+  .step-nav .btn-link {
+    width: 100%;
+    text-align: center;
+  }
   .hero-actions .btn-purple,
   .hero-actions .btn-ghost {
+    width: 100%;
+    justify-content: center;
+  }
+  .insight-transition-actions .btn-purple,
+  .insight-transition-actions .btn-ghost {
     width: 100%;
     justify-content: center;
   }

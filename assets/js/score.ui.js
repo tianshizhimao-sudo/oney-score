@@ -56,10 +56,31 @@
     mount.appendChild(meta);
   }
 
-  /* ---------------- Step card ---------------- */
+  /* Insight-phase progress: lighter, unnumbered, intentionally separate.
+     Never rolls into the numbered core progress. */
+  function renderInsightProgress(mount, info) {
+    clear(mount);
+    var rail = el('div', { class: 'progress-rail progress-rail-insight', 'aria-hidden': 'true' });
+    rail.appendChild(el('div', { class: 'progress-step is-complete' }));
+    rail.appendChild(el('div', { class: 'progress-step is-complete' }));
+    mount.appendChild(rail);
+
+    var meta = el('div', { class: 'progress-meta progress-meta-insight' }, [
+      el('span', { class: 'meta-title', text: info.title }),
+      el('span', { text: info.subtitle || '' })
+    ]);
+    mount.appendChild(meta);
+
+    if (info.hint) {
+      mount.appendChild(el('div', { class: 'progress-hint', text: info.hint }));
+    }
+  }
+
+  /* ---------------- Core step card ---------------- */
   function renderStep(mount, step, answers, handlers) {
     clear(mount);
     mount.classList.add('step-card');
+    mount.classList.remove('step-card-insight', 'step-card-transition');
     mount.hidden = false;
 
     var header = el('div', {}, [
@@ -82,12 +103,14 @@
     });
     backBtn.addEventListener('click', handlers.onBack);
 
-    var nextLabel = handlers.isLast ? 'See my score →' : 'Continue →';
+    var nextLabel = (handlers.isLast && !handlers.hasInsightLayer) ? 'See my score →' : 'Continue →';
     var nextBtn = el('button', {
       type: 'button',
       class: 'btn-purple',
       text: nextLabel,
-      'aria-label': handlers.isLast ? 'See my bank-ready score' : 'Continue to next step'
+      'aria-label': handlers.isLast
+        ? (handlers.hasInsightLayer ? 'Continue to optional business signals' : 'See my bank-ready score')
+        : 'Continue to next step'
     });
     nextBtn.disabled = !handlers.canContinue;
     if (!handlers.canContinue) nextBtn.setAttribute('aria-disabled', 'true');
@@ -100,7 +123,6 @@
     nav.appendChild(nextBtn);
     mount.appendChild(nav);
 
-    // Focus first unanswered choice card for keyboard users
     var firstUnanswered = mount.querySelector('.choice-card:not(.is-selected)');
     if (firstUnanswered && handlers.shouldFocus) firstUnanswered.focus();
   }
@@ -146,6 +168,147 @@
     return wrap;
   }
 
+  /* ---------------- Insight transition card ---------------- */
+  function renderInsightTransition(mount, copy, handlers) {
+    clear(mount);
+    mount.classList.add('step-card', 'step-card-transition');
+    mount.classList.remove('step-card-insight');
+    mount.hidden = false;
+
+    mount.appendChild(el('div', { class: 'insight-transition-eyebrow' }, [
+      el('span', { class: 'insight-transition-dot' }),
+      el('span', { text: copy.eyebrow || 'Optional sharpening layer' })
+    ]));
+    mount.appendChild(el('h2', { class: 'insight-transition-title', text: copy.title }));
+    mount.appendChild(el('p', { class: 'insight-transition-body', text: copy.body }));
+
+    if (copy.note) {
+      mount.appendChild(el('p', { class: 'insight-transition-note', text: copy.note }));
+    }
+
+    var actions = el('div', { class: 'insight-transition-actions' });
+    var primary = el('button', {
+      type: 'button',
+      class: 'btn-purple',
+      text: copy.primaryCta || 'Sharpen my result'
+    });
+    primary.addEventListener('click', handlers.onSharpen);
+    actions.appendChild(primary);
+
+    var secondary = el('button', {
+      type: 'button',
+      class: 'btn-ghost',
+      text: copy.secondaryCta || 'Skip and see score'
+    });
+    secondary.addEventListener('click', handlers.onSkip);
+    actions.appendChild(secondary);
+
+    mount.appendChild(actions);
+
+    if (handlers.shouldFocus) primary.focus();
+  }
+
+  /* ---------------- Insight group card ---------------- */
+  function renderInsightGroup(mount, group, answers, handlers) {
+    clear(mount);
+    mount.classList.add('step-card', 'step-card-insight');
+    mount.classList.remove('step-card-transition');
+    mount.hidden = false;
+
+    var header = el('div', { class: 'insight-group-header' });
+    header.appendChild(el('div', { class: 'insight-group-eyebrow' }, [
+      el('span', { class: 'insight-transition-dot' }),
+      el('span', { text: (group.eyebrow || 'Optional sharpening layer') }),
+      el('span', { class: 'insight-optional-pill', text: 'Optional' })
+    ]));
+    header.appendChild(el('h2', { text: group.title }));
+    if (group.description) {
+      header.appendChild(el('p', { class: 'step-description', text: group.description }));
+    }
+    mount.appendChild(header);
+
+    group.questions.forEach(function (question) {
+      mount.appendChild(renderInsightQuestion(question, answers, handlers));
+    });
+
+    var nav = el('div', { class: 'step-nav' });
+
+    var backBtn = el('button', {
+      type: 'button',
+      class: 'btn-ghost',
+      text: '← Back',
+      'aria-label': 'Go back'
+    });
+    backBtn.addEventListener('click', handlers.onBack);
+    nav.appendChild(backBtn);
+
+    var skipLink = el('button', {
+      type: 'button',
+      class: 'btn-link insight-skip-link',
+      text: 'Skip and see score'
+    });
+    skipLink.addEventListener('click', handlers.onSkipAll);
+    nav.appendChild(skipLink);
+
+    var continueLabel = handlers.isLastGroup ? 'See my score →' : 'Continue →';
+    var continueBtn = el('button', {
+      type: 'button',
+      class: 'btn-purple',
+      text: continueLabel
+    });
+    continueBtn.addEventListener('click', handlers.onContinue);
+    nav.appendChild(continueBtn);
+
+    mount.appendChild(nav);
+
+    if (handlers.shouldFocus) {
+      var firstCard = mount.querySelector('.choice-card');
+      if (firstCard) firstCard.focus();
+    }
+  }
+
+  function renderInsightQuestion(question, answers, handlers) {
+    var wrap = el('div', { class: 'question-group insight-question' });
+    var prompt = el('label', { class: 'question-label', text: question.prompt });
+    wrap.appendChild(prompt);
+
+    var options = question.options || [];
+    var cols = options.length >= 5 ? 3 : 2;
+    var grid = el('div', {
+      class: 'choice-grid insight-choice-grid' + (cols === 3 ? ' choice-grid-3' : ''),
+      role: 'radiogroup',
+      'aria-label': question.prompt
+    });
+
+    options.forEach(function (opt, i) {
+      var selected = answers[question.id] === opt.value;
+      var card = el('button', {
+        type: 'button',
+        class: 'choice-card' + (selected ? ' is-selected' : ''),
+        role: 'radio',
+        'aria-checked': selected ? 'true' : 'false',
+        tabindex: selected || (!answers[question.id] && i === 0) ? '0' : '-1',
+        dataset: { questionId: question.id, value: opt.value },
+        text: opt.label
+      });
+      card.addEventListener('click', function () {
+        if (selected) handlers.onClear(question.id);
+        else handlers.onSelect(question.id, opt.value);
+      });
+      card.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          if (selected) handlers.onClear(question.id);
+          else handlers.onSelect(question.id, opt.value);
+        }
+      });
+      grid.appendChild(card);
+    });
+    wrap.appendChild(grid);
+
+    return wrap;
+  }
+
   /* ---------------- Support panel ---------------- */
   function renderSupport(mount, step) {
     clear(mount);
@@ -158,17 +321,32 @@
     }
   }
 
+  function renderInsightSupport(mount, phase) {
+    clear(mount);
+    if (phase === 'transition') {
+      mount.appendChild(el('h3', { text: 'Why answer these' }));
+      mount.appendChild(el('h4', { text: 'Context sharpens the result' }));
+      mount.appendChild(el('p', { text: 'These answers do not change your Bank-Ready Score. They help us tailor the next-step guidance to the pressures actually shaping your file — cash flow, debt structure, documentation, compliance.' }));
+      mount.appendChild(el('div', { class: 'support-tip', text: 'Skip if you want the score now — you can come back and add context later.' }));
+    } else {
+      mount.appendChild(el('h3', { text: 'How these answers are used' }));
+      mount.appendChild(el('h4', { text: 'Profile tags, not score moves' }));
+      mount.appendChild(el('p', { text: 'Each answer adds signal tokens that resolve into up to 3 profile tags on your result. Your numeric score stays driven by the core readiness assessment.' }));
+      mount.appendChild(el('div', { class: 'support-tip', text: 'Answer as honestly as you can — this is signal for a banker read, not a quiz.' }));
+    }
+  }
+
   /* ---------------- Result view ---------------- */
-  function renderResult(mount, result, handlers) {
+  function renderResult(mount, result, insightResult, handlers) {
     clear(mount);
     mount.hidden = false;
     mount.classList.add('result-view');
 
     mount.appendChild(buildResultHero(result));
     mount.appendChild(buildMetricGrid(result));
-    mount.appendChild(buildRoadmap(result, handlers));
+    mount.appendChild(buildProfileCard(insightResult, handlers));
+    mount.appendChild(buildRoadmap(result, insightResult, handlers));
 
-    // Animate dial + count-up
     requestAnimationFrame(function () {
       var dial = mount.querySelector('.result-dial');
       if (dial) dial.style.setProperty('--dial-pct', (result.total * 3.6) + 'deg');
@@ -235,17 +413,83 @@
     return grid;
   }
 
-  function buildRoadmap(result, handlers) {
+  /* Business profile card — always rendered; content depends on insight state. */
+  function buildProfileCard(insightResult, handlers) {
+    var card = el('section', { class: 'profile-card' });
+    card.appendChild(el('p', { class: 'result-kicker', text: 'Your business profile' }));
+
+    if (!insightResult || insightResult.completionState === 'skipped') {
+      card.appendChild(el('h2', { text: 'Your business profile' }));
+      card.appendChild(el('p', {
+        class: 'profile-skipped-body',
+        text: 'You skipped the optional business signals questions, so this result is based on your core lending readiness answers only.'
+      }));
+      if (handlers && typeof handlers.onAddInsights === 'function') {
+        var reopen = el('button', {
+          type: 'button',
+          class: 'btn-ghost profile-reopen-btn',
+          text: 'Add business context'
+        });
+        reopen.addEventListener('click', handlers.onAddInsights);
+        card.appendChild(reopen);
+      }
+      return card;
+    }
+
+    card.appendChild(el('h2', { text: 'Your business profile' }));
+
+    var tags = insightResult.profileTags || [];
+    if (tags.length) {
+      var tagRow = el('div', { class: 'profile-tag-row', role: 'list' });
+      tags.forEach(function (tag) {
+        tagRow.appendChild(el('span', {
+          class: 'profile-tag profile-tag-' + (tag.tone || 'neutral'),
+          role: 'listitem',
+          text: tag.label
+        }));
+      });
+      card.appendChild(tagRow);
+    }
+
+    var summary = insightResult.profileSummary;
+    if (summary) {
+      var parts = [];
+      if (summary.strongestArea) parts.push('strongest in <strong>' + escapeHtml(summary.strongestArea) + '</strong>');
+      if (summary.weakestArea)   parts.push('weaker in <strong>' + escapeHtml(summary.weakestArea) + '</strong>');
+      if (summary.fastestImprovement) parts.push('most likely to improve quickly through <strong>' + escapeHtml(summary.fastestImprovement) + '</strong>');
+
+      if (parts.length) {
+        card.appendChild(el('p', {
+          class: 'profile-summary',
+          html: 'Based on your answers, your current lending profile looks ' + parts.join(', ') + '.'
+        }));
+      }
+    }
+
+    if (insightResult.completionState === 'partial') {
+      card.appendChild(el('p', {
+        class: 'profile-footnote',
+        text: 'Based on ' + insightResult.answeredCount + ' of ' + insightResult.totalQuestions + ' optional signal questions.'
+      }));
+    }
+
+    return card;
+  }
+
+  function buildRoadmap(result, insightResult, handlers) {
     var card = el('section', { class: 'roadmap-card' });
     card.appendChild(el('p', { class: 'result-kicker', text: 'Highest priority actions' }));
     card.appendChild(el('h2', { text: 'What to fix before you apply' }));
-    card.appendChild(el('p', {
-      class: 'roadmap-sub',
-      text: 'Ranked against your weakest dimensions. Fixing these first has the biggest impact on a credit decision.'
-    }));
 
+    var subText = 'Ranked against your weakest dimensions. Fixing these first has the biggest impact on a credit decision.';
+    if (insightResult && insightResult.profileTags && insightResult.profileTags.length) {
+      subText = 'Ranked against your weakest dimensions and sharpened by your profile tags. Fixing these first has the biggest impact.';
+    }
+    card.appendChild(el('p', { class: 'roadmap-sub', text: subText }));
+
+    var recs = (insightResult && insightResult.rerankedRecommendations) || result.recommendations;
     var list = el('ol', { class: 'roadmap-list' });
-    result.recommendations.forEach(function (rec) {
+    recs.forEach(function (rec) {
       var li = el('li');
       li.appendChild(el('div', {}, [
         el('span', { class: 'roadmap-area', text: rec.label }),
@@ -308,8 +552,12 @@
 
   window.OneyScoreUI = {
     renderProgressRail: renderProgressRail,
+    renderInsightProgress: renderInsightProgress,
     renderStep: renderStep,
     renderSupport: renderSupport,
+    renderInsightSupport: renderInsightSupport,
+    renderInsightTransition: renderInsightTransition,
+    renderInsightGroup: renderInsightGroup,
     renderResult: renderResult
   };
 })();

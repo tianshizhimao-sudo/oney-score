@@ -325,6 +325,85 @@ html[data-theme="light"] .roadmap-list li { background: #f8fafc; }
   max-width: 640px;
 }
 
+/* Business profile card */
+.profile-card {
+  border: 1px solid var(--border);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01)),
+    var(--card);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-radius: var(--radius-xl);
+  padding: 24px 28px;
+  box-shadow: var(--shadow-md);
+}
+html[data-theme="light"] .profile-card { background: #fff; }
+.profile-card h2 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  letter-spacing: -0.01em;
+}
+.profile-tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.profile-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-secondary);
+}
+html[data-theme="light"] .profile-tag { background: #f8fafc; }
+.profile-tag-risk {
+  color: #e87878;
+  border-color: rgba(232, 76, 61, 0.35);
+  background: rgba(232, 76, 61, 0.08);
+}
+.profile-tag-mixed {
+  color: #d7b26e;
+  border-color: rgba(245, 176, 65, 0.35);
+  background: rgba(245, 176, 65, 0.08);
+}
+.profile-tag-positive {
+  color: #2ecc85;
+  border-color: rgba(46, 204, 133, 0.35);
+  background: rgba(46, 204, 133, 0.08);
+}
+.profile-summary {
+  font-size: 14.5px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  max-width: 720px;
+}
+.profile-summary strong {
+  color: var(--text);
+  font-weight: 600;
+}
+.profile-footnote {
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.profile-skipped-body {
+  font-size: 14.5px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  max-width: 640px;
+  margin-bottom: 16px;
+}
+.profile-reopen-btn {
+  margin-top: 4px;
+}
+
 /* Mobile */
 @media (max-width: 860px) {
   .result-metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -332,6 +411,7 @@ html[data-theme="light"] .roadmap-list li { background: #f8fafc; }
   .result-dial { justify-self: flex-start; width: 140px; height: 140px; }
   .result-hero-card { padding: 26px; }
   .roadmap-card { padding: 22px; }
+  .profile-card { padding: 22px; }
 }
 @media (max-width: 480px) {
   .result-metric-grid { grid-template-columns: 1fr; }
