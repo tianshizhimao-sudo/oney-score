@@ -6,6 +6,23 @@ working local-only implementation so the UI is functional end-to-end on
 GitHub Pages. Swapping in a real backend is a configuration change, not
 a code change.
 
+## Naming convention
+
+The canonical report/automation contract uses **`snake_case`** everywhere it
+crosses a boundary: the serialised payload, the hash-encoded share URL, the
+persisted localStorage copy, email-template tokens, and the three webhook
+bodies. There are no camelCase alias fields on any outgoing payload — one
+shape, one contract.
+
+Internal JavaScript objects used inside the app (e.g. the object returned by
+`evaluateInsights`, the form state captured by the modal) are camelCase
+because they're local to the app runtime. The serializer
+(`score.report.serializer.js`) is the single mapping boundary — everything
+leaving it is snake_case.
+
+If a consumer prefers camelCase, translate at their ingestion boundary, not
+here.
+
 ## Config
 
 Set once, from a site-level snippet loaded before `score.report.adapters.js`:
@@ -74,9 +91,9 @@ call them in parallel after a modal submit:
     "total_questions": 8,
     "profile_tags":    [{ "id": "documentation_risk", "label": "Documentation risk", "tone": "risk" }],
     "profile_summary": {
-      "strongestArea": "operating stability",
-      "weakestArea":   "documentation readiness",
-      "fastestImprovement": "organising BAS, financials and bank statements"
+      "strongest_area":      "operating stability",
+      "weakest_area":        "documentation readiness",
+      "fastest_improvement": "organising BAS, financials and bank statements"
     },
     "lead_segment":  "documentation-friction",
     "signal_counts": { "documentation_risk": 2, "compliance_pressure": 1 }

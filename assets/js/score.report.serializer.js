@@ -32,18 +32,31 @@
     return 'rpt_' + rand;
   }
 
+  /* Core schema field IDs are camelCase by historical convention. The
+     serialised payload is snake_case-only, so we remap them here at the
+     boundary — internal engine state (localStorage) is unchanged. */
+  var CORE_KEY_MAP = {
+    entityType:         'entity_type',
+    industryRisk:       'industry_risk',
+    yearsTrading:       'years_trading',
+    annualRevenueBand:  'annual_revenue_band',
+    profitability:      'profitability',
+    cashBufferMonths:   'cash_buffer_months',
+    cashFlowConfidence: 'cash_flow_confidence',
+    taxLodgements:      'tax_lodgements',
+    atoDebt:            'ato_debt',
+    repaymentConduct:   'repayment_conduct',
+    securityStrength:   'security_strength',
+    docsReady:          'docs_ready'
+  };
+
   function coreAnswersSnapshot(coreAnswers) {
     if (!coreAnswers) return {};
-    var keys = [
-      'entityType', 'industryRisk', 'yearsTrading',
-      'annualRevenueBand', 'profitability',
-      'cashBufferMonths', 'cashFlowConfidence',
-      'taxLodgements', 'atoDebt',
-      'repaymentConduct', 'securityStrength', 'docsReady'
-    ];
     var out = {};
-    keys.forEach(function (k) {
-      if (coreAnswers[k] != null) out[k] = coreAnswers[k];
+    Object.keys(CORE_KEY_MAP).forEach(function (internalKey) {
+      if (coreAnswers[internalKey] != null) {
+        out[CORE_KEY_MAP[internalKey]] = coreAnswers[internalKey];
+      }
     });
     return out;
   }
@@ -72,6 +85,18 @@
         ratio: item.weight > 0 ? Number((item.score / item.weight).toFixed(3)) : 0
       };
     });
+  }
+
+  /* App-internal objects (e.g. evaluateInsights output) use camelCase.
+     Transport / persistence / email payloads are canonical snake_case.
+     This mapper is the boundary — no duplicate alias fields emitted. */
+  function serializeProfileSummary(summary) {
+    if (!summary) return null;
+    return {
+      strongest_area:      summary.strongestArea || null,
+      weakest_area:        summary.weakestArea || null,
+      fastest_improvement: summary.fastestImprovement || null
+    };
   }
 
   function serializeTags(tags) {
@@ -143,7 +168,7 @@
         answered_count: insightResult.answeredCount,
         total_questions: insightResult.totalQuestions,
         profile_tags: serializeTags(insightResult.profileTags),
-        profile_summary: insightResult.profileSummary || null,
+        profile_summary: serializeProfileSummary(insightResult.profileSummary),
         lead_segment: insightResult.leadSegment,
         signal_counts: insightResult.signalCounts || {}
       } : {

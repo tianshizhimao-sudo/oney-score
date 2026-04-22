@@ -127,9 +127,9 @@
       var ps = payload.insight.profile_summary;
       if (ps) {
         var parts = [];
-        if (ps.strongestArea) parts.push('strongest in <strong>' + ps.strongestArea + '</strong>');
-        if (ps.weakestArea) parts.push('weaker in <strong>' + ps.weakestArea + '</strong>');
-        if (ps.fastestImprovement) parts.push('most likely to improve quickly through <strong>' + ps.fastestImprovement + '</strong>');
+        if (ps.strongest_area) parts.push('strongest in <strong>' + ps.strongest_area + '</strong>');
+        if (ps.weakest_area) parts.push('weaker in <strong>' + ps.weakest_area + '</strong>');
+        if (ps.fastest_improvement) parts.push('most likely to improve quickly through <strong>' + ps.fastest_improvement + '</strong>');
         if (parts.length) profile.appendChild(el('p', { class: 'report-doc-summary-line', html: 'Based on your answers, your current lending profile looks ' + parts.join(', ') + '.' }));
       }
       mount.appendChild(profile);
