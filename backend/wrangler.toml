@@ -1,0 +1,37 @@
+# Cloudflare Worker config for oney-score-api.
+#
+# To deploy the first time:
+#   cd backend
+#   npm install
+#   npx wrangler login                           # browser SSO, one-time
+#   npx wrangler secret put RESEND_API_KEY       # paste re_xxxxxxxx
+#   npx wrangler secret put MAIL_FROM            # e.g. 'Oney & Co <hello@oneyco.com.au>'
+#   npx wrangler secret put INTERNAL_NOTIFY_TO   # e.g. 'hello@oneyco.com.au'
+#   npx wrangler secret put ALLOWED_ORIGIN       # e.g. 'https://score.oneyco.com.au'
+#   npx wrangler deploy
+#
+# After deploy, the worker is available at:
+#   https://oney-score-api.<your-account>.workers.dev
+# Use that URL as `apiBaseUrl` in window.ONEY_REPORT_CONFIG on the site.
+#
+# To bind a custom domain later (optional):
+#   1. Add a CNAME `api.oneyco.com.au → oney-score-api.<account>.workers.dev` in Cloudflare DNS
+#      (or add a Route below and let CF proxy it).
+#   2. Uncomment the [[routes]] block, re-deploy.
+
+name = "oney-score-api"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+workers_dev = true
+
+# Optional — bind a custom domain once you're happy with the `*.workers.dev`
+# URL. Requires the oneyco.com.au zone to be on Cloudflare.
+# [[routes]]
+# pattern = "api.oneyco.com.au/score-report/*"
+# zone_name = "oneyco.com.au"
+
+# Non-secret runtime flags go here. Secrets (RESEND_API_KEY, etc.) must be
+# added via `wrangler secret put` and NEVER committed.
+[vars]
+# If you enable broker-share delivery, set to 'true'. Defaults to 'true'.
+ENABLE_BROKER_SHARE = "true"

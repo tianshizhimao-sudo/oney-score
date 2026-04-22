@@ -1,0 +1,97 @@
+/* User self-report email.
+ * HTML mirrors docs/email-templates/user-report.html (canonical content source).
+ * Subject + preview + text variant per docs/report-email-templates.md.
+ */
+
+export const USER_REPORT_SUBJECT = 'Your Bank-Ready Score report';
+export const USER_REPORT_PREVIEW = 'Your score, profile summary, and top actions before application.';
+
+export const USER_REPORT_HTML = `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Your Bank-Ready Score report</title>
+  </head>
+  <body style="margin:0;padding:0;background:#f5f6f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f5f6f9;padding:32px 16px;">
+      <tr><td align="center">
+        <table role="presentation" width="560" cellspacing="0" cellpadding="0" style="max-width:560px;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e5e7eb;">
+          <tr><td style="padding:28px 28px 8px;">
+            <p style="margin:0 0 8px;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:#6b7280;font-weight:600;">Oney &amp; Co · Bank-Ready Score</p>
+            <h1 style="margin:0 0 12px;font-size:22px;line-height:1.25;color:#0f172a;">Hi {{first_name}}, your Bank-Ready Score report is ready.</h1>
+            <p style="margin:0 0 16px;font-size:15px;line-height:1.55;color:#334155;">We built this from your answers — it's a readiness signal, not a credit decision. Use it to prepare, not to apply.</p>
+          </td></tr>
+
+          <tr><td style="padding:8px 28px 16px;">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#0f172a;border-radius:14px;color:#ffffff;">
+              <tr><td style="padding:20px 22px;">
+                <p style="margin:0 0 4px;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#94a3b8;">Overall score</p>
+                <p style="margin:0 0 6px;font-size:44px;font-weight:800;letter-spacing:-0.02em;color:#ffffff;">{{score}}<span style="font-size:16px;color:#94a3b8;"> / 100</span></p>
+                <p style="margin:0 0 4px;font-size:13px;color:#cbd5e1;">{{score_band}}</p>
+                <p style="margin:0;font-size:13px;color:#cbd5e1;">Recommended path: <strong style="color:#ffffff;">{{recommended_path}}</strong></p>
+              </td></tr>
+            </table>
+          </td></tr>
+
+          <tr><td style="padding:8px 28px 0;">
+            <h2 style="margin:16px 0 8px;font-size:16px;color:#0f172a;">Your business profile</h2>
+            <p style="margin:0 0 12px;font-size:14px;line-height:1.6;color:#334155;">{{profile_summary}}</p>
+          </td></tr>
+
+          <tr><td style="padding:8px 28px 0;">
+            <h2 style="margin:16px 0 8px;font-size:16px;color:#0f172a;">Top 3 actions before you apply</h2>
+            <ol style="margin:0 0 8px 18px;padding:0;font-size:14px;line-height:1.55;color:#334155;">
+              <li style="margin-bottom:10px;">{{top_action_1}}</li>
+              <li style="margin-bottom:10px;">{{top_action_2}}</li>
+              <li style="margin-bottom:10px;">{{top_action_3}}</li>
+            </ol>
+          </td></tr>
+
+          <tr><td style="padding:20px 28px 24px;" align="left">
+            <a href="{{report_url}}" style="display:inline-block;background:#6b4c9a;color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:10px;font-weight:600;font-size:14px;">View or download the full report</a>
+            <p style="margin:14px 0 0;font-size:13px;color:#475569;">Want a banker to walk through it with you? <a href="{{request_review_url}}" style="color:#6b4c9a;">Request an Oney review</a>.</p>
+          </td></tr>
+
+          <tr><td style="padding:16px 28px 24px;border-top:1px solid #e5e7eb;">
+            <p style="margin:0;font-size:11px;line-height:1.55;color:#64748b;">{{disclaimer}}</p>
+          </td></tr>
+        </table>
+
+        {{#wants_follow_up}}
+        <p style="margin:18px 0 0;font-size:11px;color:#94a3b8;">You asked to hear from Oney with practical next-step guidance. <a href="{{unsubscribe_url}}" style="color:#94a3b8;">Unsubscribe</a>.</p>
+        {{/wants_follow_up}}
+      </td></tr>
+    </table>
+  </body>
+</html>`;
+
+export const USER_REPORT_TEXT = `Hi {{first_name}},
+
+Your Bank-Ready Score report is ready.
+
+Current result:
+- Score: {{score}} / 100
+- Readiness: {{score_band}}
+- Recommended path: {{recommended_path}}
+
+Business profile:
+{{profile_summary}}
+
+Top actions before application:
+1. {{top_action_1}}
+2. {{top_action_2}}
+3. {{top_action_3}}
+
+View your full report:
+{{report_url}}
+
+If you want a second set of eyes, you can also request an Oney review:
+{{request_review_url}}
+
+Important:
+This report is a readiness signal, not credit approval or financial advice. It is designed to help identify likely gaps before a lender reviews the application.
+{{#wants_follow_up}}
+You asked to hear from Oney with practical next-step guidance.
+To unsubscribe: {{unsubscribe_url}}
+{{/wants_follow_up}}`;
