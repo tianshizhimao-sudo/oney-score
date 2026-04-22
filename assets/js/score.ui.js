@@ -355,12 +355,19 @@
     });
 
     // Swap the result actions into a success state when the report
-    // capture modal reports success. Handler is wired once per render.
+    // capture modal reports success. Re-runs on every submit so
+    // "Email another copy" refreshes the banner with the latest email
+    // and reportUrl. Previous listener is replaced because the
+    // `mount` reference is stable across re-renders.
+    if (mount._oneyReportListener) {
+      window.removeEventListener('oney:report:generated', mount._oneyReportListener);
+    }
     var onGenerated = function (e) {
       if (!e || !e.detail) return;
       swapActionsToSuccess(mount, e.detail.payload, e.detail.result, handlers);
     };
-    window.addEventListener('oney:report:generated', onGenerated, { once: true });
+    mount._oneyReportListener = onGenerated;
+    window.addEventListener('oney:report:generated', onGenerated);
   }
 
   function buildResultHero(result) {
