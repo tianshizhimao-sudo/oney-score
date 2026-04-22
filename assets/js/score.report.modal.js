@@ -171,9 +171,9 @@
     form.appendChild(shareToggle);
 
     var shareBlock = el('div', { class: 'report-share-block', hidden: true });
-    shareBlock.appendChild(field('brokerName', 'Broker or lender name', { autocomplete: 'off', maxlength: '140' }, 'Optional'));
-    shareBlock.appendChild(field('brokerEmail', 'Broker or lender email', { type: 'email', autocomplete: 'off', inputmode: 'email', maxlength: '180' }, 'Required if sharing'));
-    shareBlock.appendChild(checkbox('consentShare', 'I confirm I’m happy to share this result with the recipient above'));
+    shareBlock.appendChild(field('recipientName', 'Broker or lender name', { autocomplete: 'off', maxlength: '140' }, 'Optional'));
+    shareBlock.appendChild(field('recipientEmail', 'Broker or lender email', { type: 'email', autocomplete: 'off', inputmode: 'email', maxlength: '180' }, 'Required if sharing'));
+    shareBlock.appendChild(checkbox('consentConfirmed', 'I confirm I’m happy to share this result with the recipient above'));
     form.appendChild(shareBlock);
 
     shareToggle.querySelector('input').addEventListener('change', function (e) {
@@ -255,25 +255,25 @@
     var businessName = val('businessName');
     var mobile = val('mobile');
     var share = val('shareWithBroker');
-    var brokerName = val('brokerName');
-    var brokerEmail = val('brokerEmail');
+    var recipientName = val('recipientName');
+    var recipientEmail = val('recipientEmail');
     var consentEmail = val('consentEmail');
     var consentFollowUp = val('consentFollowUp');
-    var consentShare = val('consentShare');
+    var consentConfirmed = val('consentConfirmed');
 
     if (!firstName) setErr('firstName', 'Please enter your first name.');
     if (!email) setErr('email', 'Please enter your email.');
     else if (!EMAIL_RE.test(email)) setErr('email', 'That doesn’t look like a valid email address.');
 
     if (share) {
-      if (!brokerEmail) setErr('brokerEmail', 'Add the recipient’s email or uncheck sharing.');
-      else if (!EMAIL_RE.test(brokerEmail)) setErr('brokerEmail', 'Recipient email looks invalid.');
+      if (!recipientEmail) setErr('recipientEmail', 'Add the recipient’s email or uncheck sharing.');
+      else if (!EMAIL_RE.test(recipientEmail)) setErr('recipientEmail', 'Recipient email looks invalid.');
     }
 
     if (!consentEmail) {
       return { ok: false, global: 'Please leave “Email me my report” checked — we need it to send the report.' };
     }
-    if (share && !consentShare) {
+    if (share && !consentConfirmed) {
       return { ok: false, global: 'Please confirm you’re happy to share the report with the recipient above.' };
     }
 
@@ -290,9 +290,10 @@
         consentFollowUp: consentFollowUp,
         share: {
           enabled: share,
-          brokerName: brokerName,
-          brokerEmail: brokerEmail,
-          consentShare: consentShare
+          recipientType: 'broker',
+          recipientName: recipientName,
+          recipientEmail: recipientEmail,
+          consentConfirmed: consentConfirmed
         }
       }
     };
@@ -342,17 +343,18 @@
     success.appendChild(el('h2', { text: 'Report ready' }));
 
     var lines = [];
-    var userEmailOk = res.userEmail && res.userEmail.ok;
+    var userEmailOk = res.deliveries && res.deliveries.userEmail && res.deliveries.userEmail.queued;
     if (userEmailOk) {
       lines.push('A copy has been sent to ' + payload.lead.email + '.');
     } else {
       lines.push('Your report is ready below — you can download or open it, and we’ll email a copy as soon as delivery is confirmed.');
     }
-    if (payload.lead.share && payload.lead.share.enabled) {
-      if (res.brokerEmail && res.brokerEmail.ok) {
-        lines.push('A copy has also been shared with ' + payload.lead.share.broker_email + '.');
+    if (payload.share && payload.share.enabled) {
+      var recipientOk = res.deliveries && res.deliveries.recipientEmail && res.deliveries.recipientEmail.queued;
+      if (recipientOk) {
+        lines.push('A copy has also been shared with ' + payload.share.recipient_email + '.');
       } else {
-        lines.push('Sharing with ' + (payload.lead.share.broker_email || 'your broker') + ' is queued.');
+        lines.push('Sharing with ' + (payload.share.recipient_email || 'your broker') + ' is queued.');
       }
     }
     lines.forEach(function (line) {
@@ -362,7 +364,7 @@
     var actions = el('div', { class: 'report-success-actions' });
     var viewBtn = el('a', {
       class: 'btn-purple',
-      href: res.reportUrl,
+      href: (res.report && res.report.reportUrl) || '#',
       target: '_blank',
       rel: 'noopener',
       text: 'Open / download report'

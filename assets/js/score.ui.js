@@ -576,15 +576,15 @@
     copy.appendChild(el('p', { class: 'result-success-title', text: 'Report ready' }));
 
     var lines = [];
-    var userOk = submitResult && submitResult.userEmail && submitResult.userEmail.ok;
+    var userOk = submitResult && submitResult.deliveries && submitResult.deliveries.userEmail && submitResult.deliveries.userEmail.queued;
     lines.push(userOk
       ? 'A copy has been sent to ' + payload.lead.email + '.'
       : 'Your report is ready below — open or download it now.');
-    if (payload.lead.share && payload.lead.share.enabled) {
-      var brokerOk = submitResult && submitResult.brokerEmail && submitResult.brokerEmail.ok;
-      lines.push(brokerOk
-        ? 'A copy has also been shared with ' + (payload.lead.share.broker_email || 'your broker') + '.'
-        : 'Sharing with ' + (payload.lead.share.broker_email || 'your broker') + ' is queued.');
+    if (payload.share && payload.share.enabled) {
+      var recipientOk = submitResult && submitResult.deliveries && submitResult.deliveries.recipientEmail && submitResult.deliveries.recipientEmail.queued;
+      lines.push(recipientOk
+        ? 'A copy has also been shared with ' + (payload.share.recipient_email || 'your broker') + '.'
+        : 'Sharing with ' + (payload.share.recipient_email || 'your broker') + ' is queued.');
     }
     lines.forEach(function (line) {
       copy.appendChild(el('p', { class: 'result-success-line', text: line }));
@@ -596,7 +596,7 @@
     var actions = el('div', { class: 'result-success-actions' });
     var download = el('a', {
       class: 'btn-purple',
-      href: submitResult && submitResult.reportUrl ? submitResult.reportUrl : '#',
+      href: (submitResult && submitResult.report && submitResult.report.reportUrl) ? submitResult.report.reportUrl : '#',
       target: '_blank',
       rel: 'noopener',
       text: 'Download report'

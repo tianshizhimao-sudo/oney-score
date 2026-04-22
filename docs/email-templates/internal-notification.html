@@ -1,51 +1,82 @@
 <!--
-  Email / webhook body: internal Oney notification (type=internal_lead)
-  Intended for fast triage — either surfaced to a channel (Slack / Teams)
-  or sent to an inbox. Field names follow the raw report payload so a
-  CRM adapter can consume the same shape.
+  Internal Oney lead notification (type=internal_lead)
 
-  Tokens mirror the JSON payload directly.
+  Subject options:
+    New Bank-Ready Score report lead: {{first_name}} · {{score}}
+    Bank-Ready Score lead: {{score_band}} / {{recommended_path}}
+
+  Transport:
+    Can be email, webhook, Slack/Teams message, CRM write, or queue event.
+    Whichever transport you pick, keep the InternalLeadNotification field
+    structure from docs/report-integration.md so triage logic stays stable.
+
+  Token map (from the canonical ReportSubmitRequest):
+
+    {{first_name}}, {{email}}, {{business_name}}, {{mobile}}
+        ← payload.lead.*
+    {{wants_follow_up}}             ← payload.lead.wants_follow_up (yes/no)
+    {{score}}                       ← payload.report.overall_score
+    {{score_band}}                  ← payload.report.readiness_band
+    {{recommended_path}}            ← payload.report.recommended_path
+    {{created_at}}                  ← payload.report.created_at
+    {{profile_tags}}                ← payload.report.profile_tags.join(', ')
+    {{profile_summary}}             ← one-line render of report.profile_summary
+    {{top_action_1..3}}             ← payload.report.top_priority_actions[*].label
+    {{shared_with_recipient}}       ← payload.share.enabled (yes/no)
+    {{recipient_name}}              ← payload.share.recipient_name
+    {{recipient_email}}             ← payload.share.recipient_email
+    {{recipient_type}}              ← payload.share.recipient_type
+    {{report_url}}                  ← response.report.reportUrl
+    {{raw_payload_json}}            ← JSON.stringify(payload) for the archive row
 -->
 <!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8">
-    <title>New Bank-Ready Score lead — {{lead.first_name}}</title>
+    <title>New Bank-Ready Score report lead — {{first_name}}</title>
   </head>
   <body style="margin:0;padding:16px;background:#ffffff;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#0f172a;font-size:13px;line-height:1.55;">
     <h2 style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:16px;margin:0 0 12px;">
-      New Bank-Ready Score lead
+      New Bank-Ready Score report lead
     </h2>
 
     <table cellspacing="0" cellpadding="6" style="border-collapse:collapse;font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:13px;">
-      <tr><td style="color:#64748b;">Report ID</td><td>{{report_id}}</td></tr>
-      <tr><td style="color:#64748b;">Generated</td><td>{{created_at}}</td></tr>
-      <tr><td style="color:#64748b;">Name</td><td>{{lead.first_name}}</td></tr>
-      <tr><td style="color:#64748b;">Email</td><td><a href="mailto:{{lead.email}}">{{lead.email}}</a></td></tr>
-      <tr><td style="color:#64748b;">Business</td><td>{{lead.business_name}}</td></tr>
-      <tr><td style="color:#64748b;">Mobile</td><td>{{lead.mobile}}</td></tr>
-      <tr><td style="color:#64748b;">Score</td><td><strong>{{overall_score}}</strong> / 100 — {{readiness_label}}</td></tr>
-      <tr><td style="color:#64748b;">Next step</td><td>{{next_step}}</td></tr>
-      <tr><td style="color:#64748b;">Lead segment</td><td>{{insight.lead_segment}}</td></tr>
-      <tr><td style="color:#64748b;">Follow-up opt-in</td><td>{{#lead.consent_followup}}Yes{{/lead.consent_followup}}{{^lead.consent_followup}}No{{/lead.consent_followup}}</td></tr>
-      <tr><td style="color:#64748b;">Shared with recipient</td><td>{{#lead.share.enabled}}Yes — {{lead.share.broker_email}}{{/lead.share.enabled}}{{^lead.share.enabled}}No{{/lead.share.enabled}}</td></tr>
+      <tr><td style="color:#64748b;">Name</td><td>{{first_name}}</td></tr>
+      <tr><td style="color:#64748b;">Email</td><td><a href="mailto:{{email}}">{{email}}</a></td></tr>
+      <tr><td style="color:#64748b;">Business</td><td>{{business_name}}</td></tr>
+      <tr><td style="color:#64748b;">Mobile</td><td>{{mobile}}</td></tr>
+      <tr><td style="color:#64748b;">Wants follow-up</td><td>{{wants_follow_up}}</td></tr>
+      <tr><td style="color:#64748b;">Created</td><td>{{created_at}}</td></tr>
     </table>
 
-    <h3 style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;margin:20px 0 8px;">Profile tags</h3>
-    <ul style="margin:0 0 16px 18px;padding:0;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">
-      {{#insight.profile_tags}}
-        <li>{{label}} <span style="color:#64748b;">({{tone}})</span></li>
-      {{/insight.profile_tags}}
-    </ul>
+    <h3 style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;margin:20px 0 8px;">Report</h3>
+    <table cellspacing="0" cellpadding="6" style="border-collapse:collapse;font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:13px;">
+      <tr><td style="color:#64748b;">Score</td><td><strong>{{score}}</strong> / 100 — {{score_band}}</td></tr>
+      <tr><td style="color:#64748b;">Recommended path</td><td>{{recommended_path}}</td></tr>
+      <tr><td style="color:#64748b;">Profile tags</td><td>{{profile_tags}}</td></tr>
+      <tr><td style="color:#64748b;">Profile summary</td><td>{{profile_summary}}</td></tr>
+    </table>
 
-    <h3 style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;margin:20px 0 8px;">Top 3 actions</h3>
+    <h3 style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;margin:20px 0 8px;">Top actions</h3>
     <ol style="margin:0 0 16px 18px;padding:0;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">
-      {{#top_actions}}
-        <li style="margin-bottom:6px;"><strong>{{label}}.</strong> {{text}}</li>
-      {{/top_actions}}
+      <li style="margin-bottom:6px;">{{top_action_1}}</li>
+      <li style="margin-bottom:6px;">{{top_action_2}}</li>
+      <li style="margin-bottom:6px;">{{top_action_3}}</li>
     </ol>
 
-    <h3 style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;margin:20px 0 8px;">Raw payload</h3>
+    <h3 style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;margin:20px 0 8px;">Share status</h3>
+    <table cellspacing="0" cellpadding="6" style="border-collapse:collapse;font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:13px;">
+      <tr><td style="color:#64748b;">Shared with recipient</td><td>{{shared_with_recipient}}</td></tr>
+      <tr><td style="color:#64748b;">Recipient name</td><td>{{recipient_name}}</td></tr>
+      <tr><td style="color:#64748b;">Recipient type</td><td>{{recipient_type}}</td></tr>
+      <tr><td style="color:#64748b;">Recipient email</td><td>{{recipient_email}}</td></tr>
+    </table>
+
+    <p style="margin:18px 0 8px;">
+      Report link: <a href="{{report_url}}">{{report_url}}</a>
+    </p>
+
+    <h3 style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;margin:20px 0 8px;">Raw payload (archive)</h3>
     <pre style="background:#0f172a;color:#e2e8f0;padding:12px;border-radius:8px;white-space:pre-wrap;word-break:break-word;font-size:11px;">{{raw_payload_json}}</pre>
   </body>
 </html>

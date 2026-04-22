@@ -1,199 +1,386 @@
-# Bank-Ready Score — report flow integration
+# Report Integration Contract
 
-This document describes how the front-end talks to a backend (or local
-mock) for the "Generate my lending report" flow. The site ships with a
-working local-only implementation so the UI is functional end-to-end on
-GitHub Pages. Swapping in a real backend is a configuration change, not
-a code change.
+## Purpose
+
+Defines the backend contract for the `Generate my lending report` flow on
+`score.oneyco.com.au`.
+
+Two modes:
+
+- **`mock` mode** — default. Works fully on GitHub Pages with no backend.
+  Reports are encoded into a hash fragment and also persisted to
+  `localStorage` for same-device access.
+- **`live` mode** — single submit endpoint drives the downstream
+  workflow (lead capture, user email, optional broker share,
+  internal notification). Enabled by injecting
+  `window.ONEY_REPORT_CONFIG`.
+
+The frontend is written so switching from mock to live is an
+**adapter/config change**, not a rewrite.
+
+See also: [`docs/report-email-templates.md`](./report-email-templates.md)
+for the email content contract.
+
+---
 
 ## Naming convention
 
-The canonical report/automation contract uses **`snake_case`** everywhere it
-crosses a boundary: the serialised payload, the hash-encoded share URL, the
-persisted localStorage copy, email-template tokens, and the three webhook
-bodies. There are no camelCase alias fields on any outgoing payload — one
-shape, one contract.
+Transport, persistence, share URL, and email-template payloads are
+**`snake_case` only** — one contract, no aliases. See commit history
+for the rule enforcement.
 
-Internal JavaScript objects used inside the app (e.g. the object returned by
-`evaluateInsights`, the form state captured by the modal) are camelCase
-because they're local to the app runtime. The serializer
-(`score.report.serializer.js`) is the single mapping boundary — everything
-leaving it is snake_case.
+TypeScript interfaces below are illustrative shape references. Whatever
+the developer-facing app type signatures look like, the wire payload is
+always snake_case and the serializer is the single mapping boundary.
 
-If a consumer prefers camelCase, translate at their ingestion boundary, not
-here.
+---
 
-## Config
+## Frontend config contract
 
-Set once, from a site-level snippet loaded before `score.report.adapters.js`:
+The site checks for a global config object:
 
-```html
-<script>
-  window.ONEY_REPORT_CONFIG = {
-    leadCaptureUrl:     'https://api.oneyco.com.au/score/leads',
-    emailServiceUrl:    'https://api.oneyco.com.au/score/emails',
-    internalWebhookUrl: 'https://hooks.oneyco.com.au/score/internal',
-    reportViewerUrl:    'https://score.oneyco.com.au/report.html',
-    requestTimeoutMs:   8000
-  };
-</script>
-```
-
-Any key left `null` or unset falls back to the local adapter for that
-concern (lead capture / email / internal webhook) so partial rollouts
-are safe. Secrets never live in the browser — authenticate the request
-path on the backend (IP allowlisting on the edge, signed request from a
-Cloudflare Worker, server-side HubSpot/CRM keys, etc).
-
-## Submit payload
-
-All three endpoints receive the same report payload shape. Adapters
-call them in parallel after a modal submit:
-
-- `leadCapture.submit(payload)` — authoritative "save the lead".
-- `email.sendUserReport(payload)` — sends the user copy.
-- `email.sendBrokerShare(payload)` — only sent when
-  `payload.lead.share.enabled === true` **and**
-  `payload.lead.share.consent_share === true`.
-- `webhook.postInternal(payload)` — internal triage notification.
-
-### Payload shape
-
-```jsonc
-{
-  "report_id": "rpt_abc123…",
-  "created_at": "2026-04-22T00:00:00.000Z",
-  "product_version": "bank-ready-score@1.1.0",
-  "scoring_version": "1",
-  "disclaimer_version": "1",
-  "disclaimer": "This is a readiness signal, not credit approval…",
-
-  "overall_score": 76,
-  "readiness_band": "borderline",
-  "readiness_label": "Close — polish before applying",
-  "next_step": "Broker-led polish first",
-
-  "dimensions": [
-    { "id": "profile",    "label": "Business profile",     "score": 8,  "weight": 10, "ratio": 0.8 },
-    { "id": "history",    "label": "Trading history",      "score": 8,  "weight": 10, "ratio": 0.8 },
-    { "id": "financials", "label": "Revenue & profitability","score": 14,"weight": 20, "ratio": 0.7 }
-    // …8 entries
-  ],
-
-  "top_actions": [
-    { "id": "docs",       "label": "Documentation",        "text": "Prepare a clean credit pack…" }
-    // up to 3
-  ],
-
-  "insight": {
-    "completion_state": "complete" /* | "partial" | "skipped" | "unavailable" */,
-    "answered_count": 8,
-    "total_questions": 8,
-    "profile_tags":    [{ "id": "documentation_risk", "label": "Documentation risk", "tone": "risk" }],
-    "profile_summary": {
-      "strongest_area":      "operating stability",
-      "weakest_area":        "documentation readiness",
-      "fastest_improvement": "organising BAS, financials and bank statements"
-    },
-    "lead_segment":  "documentation-friction",
-    "signal_counts": { "documentation_risk": 2, "compliance_pressure": 1 }
-  },
-
-  "key_answers": {
-    "core":    { "entityType": "company", "industryRisk": "medium", /* … */ },
-    "insight": { "funding_reason": "expansion", /* … */ }
-  },
-
-  "lead": {
-    "first_name": "Alice",
-    "email": "alice@example.com",
-    "business_name": "Acme Pty Ltd",
-    "mobile": "+61400000000",
-    "consent_email": true,
-    "consent_followup": true,
-    "share": {
-      "enabled": true,
-      "broker_name": "Broker Co",
-      "broker_email": "broker@example.com",
-      "consent_share": true
-    }
+```ts
+declare global {
+  interface Window {
+    ONEY_REPORT_CONFIG?: {
+      mode?: 'mock' | 'live';
+      apiBaseUrl?: string;
+      endpoints?: {
+        submitReport?: string; // default '/score-report/submit'
+        getReport?: string;    // default '/score-report/report'
+        unsubscribe?: string;  // default '/score-report/unsubscribe'
+      };
+      analytics?: {
+        enabled?: boolean;
+        provider?: string;
+      };
+      productVersion?: string;
+      scoringVersion?: string;
+      disclaimerVersion?: string;
+      reportViewerUrl?: string;   // default `${origin}/report.html`
+      requestTimeoutMs?: number;  // default 10000
+    };
   }
 }
 ```
 
-## Backend contracts
+### Example injection (live mode)
 
-### `POST /score/leads` — lead capture
+```html
+<script>
+  window.ONEY_REPORT_CONFIG = {
+    mode: 'live',
+    apiBaseUrl: 'https://api.example.com',
+    endpoints: {
+      submitReport: '/score-report/submit',
+      getReport:    '/score-report/report',
+      unsubscribe:  '/score-report/unsubscribe'
+    },
+    analytics:        { enabled: true, provider: 'ga4' },
+    productVersion:   'bank-ready-score-v1',
+    scoringVersion:   'bank-ready-v1',
+    disclaimerVersion:'2026-04'
+  };
+</script>
+```
 
-**Request body:** full report payload (above).
+### Fallback rule
 
-**Response:**
+If `window.ONEY_REPORT_CONFIG` is missing or `mode !== 'live'`:
+
+- default to mock mode
+- never fail the UI
+- continue the report flow using the local adapter
+
+Secrets **never** live in this config. Authenticate the backend edge
+(Cloudflare Worker, API Gateway + IAM, signed webhook receivers, etc).
+
+---
+
+## Core payload model
+
+Every submit sends one `ReportSubmitRequest`. The wire shape is
+snake_case (TS interface below is illustrative).
+
+```ts
+// Developer-facing shape (illustrative)
+export interface ReportSubmitRequest {
+  lead: {
+    firstName: string;
+    email: string;
+    businessName?: string;
+    mobile?: string;
+    wantsFollowUp: boolean;
+  };
+  share?: {
+    enabled: boolean;
+    recipientType?: 'broker' | 'lender' | 'banker' | 'other';
+    recipientName?: string;
+    recipientEmail?: string;
+    consentConfirmed?: boolean;
+  };
+  report: {
+    reportId: string;
+    createdAt: string;
+    overallScore: number;
+    readinessBand: 'strong' | 'borderline' | 'needs_work';
+    recommendedPath: 'approach_bank' | 'broker_review' | 'improve_first';
+    dimensionScores: Record<string, number>;
+    insightCompletionState: 'skipped' | 'partial' | 'complete';
+    profileTags: string[];
+    profileSummary: {
+      strongestArea?: string;
+      weakestArea?: string;
+      fastestImprovement?: string;
+    };
+    topPriorityActions: Array<{ id: string; label: string; body: string }>;
+    keyAnswers?: Record<string, string | string[]>;
+    fundingSignals?: string[];
+    productVersion: string;
+    scoringVersion: string;
+    disclaimerVersion: string;
+  };
+  meta: {
+    source: 'bank-ready-score';
+    mode: 'mock' | 'live';
+    userAgent?: string;
+    locale?: string;
+    pageUrl?: string;
+    reportUrl?: string;
+  };
+}
+```
+
+### Canonical JSON wire shape (what the frontend actually sends)
+
 ```jsonc
-{ "ok": true, "lead_id": "lead_abc123" }
+{
+  "lead": {
+    "first_name": "Alice",
+    "email": "alice@example.com",
+    "business_name": "Acme Pty Ltd",
+    "mobile": "",
+    "wants_follow_up": true
+  },
+  "share": {
+    "enabled": true,
+    "recipient_type": "broker",
+    "recipient_name": "Broker Co",
+    "recipient_email": "broker@example.com",
+    "consent_confirmed": true
+  },
+  "report": {
+    "report_id": "rpt_abc123…",
+    "created_at": "2026-04-22T00:00:00.000Z",
+    "overall_score": 66,
+    "readiness_band": "borderline",
+    "recommended_path": "broker_review",
+    "dimension_scores": {
+      "profile": 8, "history": 8, "financials": 14, "liquidity": 9,
+      "compliance": 6, "debt": 6, "security": 7, "docs": 6
+    },
+    "insight_completion_state": "complete",
+    "profile_tags": ["Documentation risk", "Compliance pressure", "Growth ready, structurally weak"],
+    "profile_summary": {
+      "strongest_area": "borrower profile",
+      "weakest_area": "documentation readiness",
+      "fastest_improvement": "organising BAS, financials and bank statements"
+    },
+    "top_priority_actions": [
+      { "id": "compliance", "label": "Tax / BAS / ATO", "body": "Bring tax returns, BAS and ATO position fully up to date…" }
+    ],
+    "key_answers": { "entity_type": "company", "funding_reason": "expansion" },
+    "funding_signals": ["growth_intent", "compliance_pressure"],
+    "product_version": "bank-ready-score-v1",
+    "scoring_version": "bank-ready-v1",
+    "disclaimer_version": "2026-04"
+  },
+  "meta": {
+    "source": "bank-ready-score",
+    "mode": "mock",
+    "user_agent": "Mozilla/5.0 …",
+    "locale": "en-AU",
+    "page_url": "https://score.oneyco.com.au/",
+    "report_url": "https://score.oneyco.com.au/report.html#r=…"
+  }
+}
 ```
 
-### `POST /score/emails` — transactional email
+When `share.enabled` is `false`, the `share` object is
+`{ "enabled": false }` — no recipient fields are emitted.
 
-**Request body:**
-```jsonc
-{ "type": "user_report" | "broker_share", "payload": { /* report payload */ } }
+---
+
+## Endpoints
+
+### 1. `POST {apiBaseUrl}/score-report/submit`
+
+Handles the full downstream workflow:
+
+- validate input
+- persist report + lead
+- queue / send user email
+- queue / send broker-share email if `share.enabled && share.consent_confirmed`
+- queue / send internal Oney notification (email, webhook, Slack/Teams, CRM)
+- return canonical report access info
+
+**Request body:** `ReportSubmitRequest` (above).
+
+**Response body:**
+
+```ts
+export interface ReportSubmitResponse {
+  success: boolean;
+  mode: 'mock' | 'live';
+  report: {
+    reportId: string;
+    reportUrl: string;
+    reportPath?: string | null;
+    expiresAt?: string | null;
+  };
+  deliveries: {
+    userEmail:            { queued: boolean; sent?: boolean; email: string };
+    recipientEmail?:      { queued: boolean; sent?: boolean; email: string };
+    internalNotification: { queued: boolean; sent?: boolean };
+  };
+  unsubscribeUrlTemplate?: string; // e.g. ".../unsubscribe?token={{token}}"
+  message?: string;
+}
 ```
 
-**Response:** `{ "ok": true }` (the transport doesn't need to block on
-actual delivery — rely on your provider's delivery webhook for
-reconciliation).
+**Validation rules (backend-side):**
 
-Templates live under `docs/email-templates/`:
+- `lead.first_name` required
+- `lead.email` required and valid email
+- `share.recipient_email` required if `share.enabled === true`
+- `share.consent_confirmed` must be `true` if `share.enabled === true`
+- `report.*` must be present and well-formed enough to re-render
 
-- `user-report.html` — sent on every submit, to `payload.lead.email`.
-- `broker-review.html` — sent only when `lead.share.enabled && lead.share.consent_share`.
+**Recommended backend behaviour:** return once everything is queued,
+don't block on upstream email provider final delivery. Reconciliation
+happens via provider webhooks.
 
-### `POST /hooks/internal` — internal notification / CRM webhook
+### 2. `GET {apiBaseUrl}/score-report/report/:id`
 
-**Request body:** full report payload.
+Resolves a report by id — used by the viewer when the URL is
+`?id=<report_id>` rather than a hash-encoded payload.
 
-**Response:** `{ "ok": true }`.
+**Response body:**
 
-The `internal-notification.html` template is a reference body for
-email/Slack/Teams inbox delivery; if you're pushing to HubSpot /
-Pipedrive / Attio directly, translate the payload shape at the adapter
-layer rather than fanning out multiple webhooks from the browser.
-
-## Report viewer URL
-
-When a backend is configured (`leadCaptureUrl` is set), report URLs
-take the form:
-
-```
-https://score.oneyco.com.au/report.html?id=<report_id>
-```
-
-Your backend is expected to serve / resolve the payload for that id.
-You can implement this two ways:
-
-1. **Resolver endpoint + short-lived signed URL:** serve a tiny JSON
-   endpoint that returns the payload for an authenticated / signed id.
-   Update `report.view.js` to fetch from there (adds one network hop).
-2. **Server-rendered report page:** host a rendered HTML at
-   `/report.html?id=…` server-side, bypassing the static fallback.
-
-When no backend is configured, report URLs embed the (PII-stripped)
-payload in the hash:
-
-```
-https://score.oneyco.com.au/report.html#r=<base64-json>
+```ts
+export interface GetReportResponse {
+  success: boolean;
+  report: ReportSubmitRequest['report'];
+  leadSummary?: {
+    firstName?: string;
+    businessName?: string;
+  };
+  shareSummary?: {
+    enabled: boolean;
+    recipientName?: string;
+    recipientType?: string;
+  };
+}
 ```
 
-This works without any backend — the viewer reads the hash, decodes
-it, and renders the same report. Lead contact details are **not**
-embedded in the hash so the same URL can be safely shared with a broker.
+Do not return `lead.email`, `lead.mobile`, or share-recipient contact
+details from this endpoint — a share URL can end up forwarded.
+
+### 3. `POST {apiBaseUrl}/score-report/unsubscribe`
+
+Follow-up opt-out for users who had `wants_follow_up === true`.
+
+**Request body:** `{ token: string; reason?: string }`
+**Response body:** `{ success: boolean; message?: string }`
+
+The frontend email template contains `{{unsubscribe_url}}` as a **template placeholder only**. Unsubscribe URLs are minted server-side with a signed or opaque token at send time — the frontend never constructs this URL.
+
+---
+
+## Mock mode contract
+
+Mock mode mirrors the same UI flow without network I/O.
+
+**Persists three localStorage keys:**
+
+- `oney-score-report-leads` — trimmed lead + share + score summary, keyed by `report_id`
+- `oney-score-report-records` — full `ReportSubmitRequest` payloads, keyed by `report_id`
+- `oney-score-report-last-submit` — the most recent submit's `{ report_id, submitted_at, mode }`
+
+**Response shape:** same `ReportSubmitResponse` as live mode, with
+`mode: 'mock'` and `deliveries.*.queued: true, sent: false`. Keeps the
+UI branch-free.
+
+**Report URL:** hash-encoded slim payload —
+`report.html#r=<base64(JSON)>`. PII (email, mobile, share recipient
+contact, follow-up consent, meta.user_agent, meta.page_url) is
+**stripped** from the hash so the link is safe to hand to a broker.
+
+---
+
+## Canonical report URL strategy
+
+The renderer in `report.html` is URL-strategy-agnostic:
+
+1. If `#r=<encoded>` is present → decode and render.
+2. Else if `?id=<report_id>` is present → resolve via adapter
+   (live = `GET /score-report/report/:id`; mock = localStorage lookup).
+3. Else → render `renderMissing()`.
+
+This lets the site move from hash-encoded to id-based URLs without a
+renderer rewrite. The slim hash payload only carries
+`{ report, lead:{first_name,business_name}, share:{enabled,recipient_type?} }`.
+
+---
+
+## Internal notification contract
+
+Shape recommended for email, webhook, Slack/Teams message, CRM write,
+or queue event:
+
+```ts
+export interface InternalLeadNotification {
+  lead: {
+    first_name: string;
+    email: string;
+    business_name?: string;
+    mobile?: string;
+    wants_follow_up: boolean;
+  };
+  report: {
+    report_id: string;
+    overall_score: number;
+    readiness_band: string;
+    recommended_path: string;
+    profile_tags: string[];
+    top_priority_actions: Array<{ id: string; label: string }>;
+  };
+  share: {
+    enabled: boolean;
+    recipient_name?: string;
+    recipient_email?: string;
+    recipient_type?: string;
+  };
+  meta: {
+    created_at: string;
+    source: 'bank-ready-score';
+    report_url?: string;
+  };
+}
+```
+
+Triage signal fields of interest:
+- `wants_follow_up` → filter follow-up queue
+- `recommended_path === 'improve_first'` with
+  `profile_tags.includes('Debt load concern')` → restructure candidate
+- `share.enabled === true` → client already engaged a broker / lender
+
+---
 
 ## Analytics events
 
-All events are routed through the existing whitelisted `trackEvent`
-helper (no PII, no free-text). Every event is forwarded to both GTM
-`dataLayer` and `gtag` if available. Allowed events added for this
-flow:
+Routed through the whitelisted `trackEvent` helper (no PII, no free-text).
+Forwarded to both GTM `dataLayer` and `gtag` if present.
 
 - `report_generate_clicked`
 - `report_modal_opened`
@@ -203,12 +390,44 @@ flow:
 - `report_shared_to_broker`
 - `oney_follow_up_opted_in`
 
-## Outstanding / future work
+---
 
-- Server-side resolver for `?id=` URLs when backend lands.
-- Real PDF generation (current flow uses the browser's Print dialog,
-  which produces a clean PDF from `report.html` without any extra deps).
-- Unsubscribe flow for follow-up consent (`unsubscribe_url` token in
-  user email template).
-- Industry-specific report templates (hook already exists via the
-  insight pack system — extend the template registry the same way).
+## Security / privacy notes
+
+- Never hardcode provider secrets in the frontend.
+- Validate consent fields server-side — don't trust client.
+- Internal-notification transport must be protected (auth, IP allowlist,
+  signed webhook, or private queue).
+- The hash-encoded share URL is a share-by-possession artifact. It's safe
+  for brokers (no email / mobile) but is not a secure document vault.
+  If reports become long-lived, layer expiry + access control onto the
+  `?id=` resolver.
+
+---
+
+## Recommended implementation sequencing
+
+1. ✅ Ship mock mode fully working on GitHub Pages.
+2. Wire `window.ONEY_REPORT_CONFIG` injection template.
+3. Implement `POST /score-report/submit` (persist + user email + internal
+   notification).
+4. Implement optional broker-share email branch.
+5. Implement `GET /score-report/report/:id` resolver.
+6. Implement `POST /score-report/unsubscribe` with signed tokens.
+7. Switch share URLs from hash-encoded to id-based once the resolver
+   is live. Keep the hash-decoder for backward compatibility.
+8. Optional: server-side PDF rendering from the same `report` payload.
+
+## Open backend decisions
+
+Settleable later without breaking the frontend contract:
+
+- database choice
+- queue provider
+- email provider + delivery provider (SES, Postmark, etc)
+- CRM destination (HubSpot, Pipedrive, Attio, internal)
+- signed-token format for unsubscribe
+- report retention policy (expiry)
+- whether broker vs lender recipients should receive different templates
+
+The wire payload and the three endpoint shapes are the stable surface.

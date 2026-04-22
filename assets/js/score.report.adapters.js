@@ -1,46 +1,64 @@
 /* Bank-Ready Score — report platform (provider-based adapters)
  *
- * One submit from the modal fans out to multiple adapters so the flow
- * can stay identical whether the site is running against the mocked
- * local adapters (static GitHub Pages build) or against a real
- * backend (lead capture API + email service + CRM webhook).
+ * Two modes of operation, selected by `window.ONEY_REPORT_CONFIG.mode`:
  *
- * Configure via:
- *   window.ONEY_REPORT_CONFIG = {
- *     leadCaptureUrl:   'https://api.oneyco.com.au/score/leads',
- *     emailServiceUrl:  'https://api.oneyco.com.au/score/emails',
- *     internalWebhookUrl: 'https://hooks.oneyco.com.au/score/internal',
- *     reportViewerUrl:  'https://score.oneyco.com.au/report.html'
- *   };
+ *   'mock' — default, static/GitHub-Pages build. Persists to localStorage,
+ *            encodes the share URL in a hash fragment, returns a structured
+ *            ReportSubmitResponse so the UI does not branch on mode.
  *
- * Missing endpoints silently fall back to the local adapter so the UI
- * stays functional. Secrets never live here — transport is signed /
- * authed by whatever backend sits behind these URLs (Cloudflare
- * Worker, Lambda, n8n, HubSpot, etc).
+ *   'live' — single `POST {apiBaseUrl}{endpoints.submitReport}` that the
+ *            backend fans out into lead capture + user email + optional
+ *            broker share + internal notification. Share URL is id-based
+ *            (`?id=<report_id>`); the viewer resolves via
+ *            `GET {apiBaseUrl}{endpoints.getReport}/:id`.
+ *
+ * Contract docs:
+ *   docs/report-integration.md      — endpoint + payload + response shapes
+ *   docs/report-email-templates.md  — email template token contracts
+ *
+ * Secrets never live here. The backend authenticates the request path
+ * (Cloudflare Worker, API Gateway + IAM, signed webhooks, etc).
  */
 (function () {
   'use strict';
 
-  var DEFAULT_CONFIG = {
-    leadCaptureUrl:    null,
-    emailServiceUrl:   null,
-    internalWebhookUrl:null,
-    reportViewerUrl:   (function () {
-      try {
-        var origin = window.location.origin;
-        return origin + '/report.html';
-      } catch (e) { return '/report.html'; }
-    })(),
-    requestTimeoutMs:  8000
+  /* ---------------- Config resolution ---------------- */
+
+  var DEFAULT_ENDPOINTS = {
+    submitReport: '/score-report/submit',
+    getReport:    '/score-report/report',
+    unsubscribe:  '/score-report/unsubscribe'
   };
 
   function getConfig() {
     var user = window.ONEY_REPORT_CONFIG || {};
-    var merged = {};
-    Object.keys(DEFAULT_CONFIG).forEach(function (k) { merged[k] = DEFAULT_CONFIG[k]; });
-    Object.keys(user).forEach(function (k) { merged[k] = user[k]; });
-    return merged;
+    var endpoints = Object.assign({}, DEFAULT_ENDPOINTS, (user.endpoints || {}));
+    var baseUrl = user.apiBaseUrl || null;
+    return {
+      mode:            user.mode === 'live' ? 'live' : 'mock',
+      apiBaseUrl:      baseUrl,
+      endpoints:       endpoints,
+      submitUrl:       baseUrl ? joinUrl(baseUrl, endpoints.submitReport) : null,
+      getReportUrl:    baseUrl ? joinUrl(baseUrl, endpoints.getReport)   : null,
+      unsubscribeUrl:  baseUrl ? joinUrl(baseUrl, endpoints.unsubscribe) : null,
+      reportViewerUrl: user.reportViewerUrl || defaultViewerUrl(),
+      requestTimeoutMs: user.requestTimeoutMs || 10000,
+      analytics:       user.analytics || { enabled: true }
+    };
   }
+
+  function defaultViewerUrl() {
+    try { return window.location.origin + '/report.html'; }
+    catch (e) { return '/report.html'; }
+  }
+
+  function joinUrl(base, path) {
+    if (!base) return path;
+    if (!path) return base;
+    return base.replace(/\/+$/, '') + (path[0] === '/' ? '' : '/') + path;
+  }
+
+  /* ---------------- HTTP helpers ---------------- */
 
   function withTimeout(promise, ms) {
     return new Promise(function (resolve, reject) {
@@ -65,156 +83,172 @@
     return withTimeout(req, timeoutMs);
   }
 
-  /* ---------------- Local (mocked) adapters ---------------- */
+  function getJson(url, timeoutMs) {
+    if (typeof fetch !== 'function') return Promise.reject(new Error('fetch-unavailable'));
+    var req = fetch(url, {
+      method: 'GET',
+      mode: 'cors',
+      credentials: 'omit',
+      headers: { Accept: 'application/json' }
+    }).then(function (r) {
+      if (!r.ok) throw new Error('http-' + r.status);
+      return r.json();
+    });
+    return withTimeout(req, timeoutMs);
+  }
 
-  var LOCAL_STORAGE_KEY = 'oney-score-reports';
+  /* ---------------- Local storage (mock mode) ---------------- */
 
-  function readLocalStore() {
+  var STORAGE_KEYS = {
+    leads:   'oney-score-report-leads',
+    records: 'oney-score-report-records',
+    last:    'oney-score-report-last-submit'
+  };
+
+  function readStore(key) {
     try {
-      var raw = localStorage.getItem(LOCAL_STORAGE_KEY);
+      var raw = localStorage.getItem(key);
       if (!raw) return {};
       var parsed = JSON.parse(raw);
       return (parsed && typeof parsed === 'object') ? parsed : {};
     } catch (e) { return {}; }
   }
-  function writeLocalStore(store) {
-    try { localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(store)); } catch (e) {}
+  function writeStore(key, obj) {
+    try { localStorage.setItem(key, JSON.stringify(obj)); } catch (e) {}
   }
 
-  function saveLocalReport(payload) {
-    var store = readLocalStore();
-    store[payload.report_id] = payload;
-    writeLocalStore(store);
-  }
+  function persistMockSubmit(payload) {
+    var records = readStore(STORAGE_KEYS.records);
+    records[payload.report.report_id] = payload;
+    writeStore(STORAGE_KEYS.records, records);
 
-  var localAdapters = {
-    leadCapture: {
-      submit: function (payload) {
-        saveLocalReport(payload);
-        return Promise.resolve({
-          ok: true,
-          mode: 'local',
-          lead_id: 'local_' + payload.report_id
-        });
-      }
-    },
-    email: {
-      sendUserReport: function (payload) {
-        // No backend → we cannot actually send mail. Return ok:false with
-        // mode 'local-pending' so the caller can surface a fallback
-        // (e.g. an on-page report view + download button).
-        return Promise.resolve({ ok: false, mode: 'local-pending' });
-      },
-      sendBrokerShare: function (payload) {
-        return Promise.resolve({ ok: false, mode: 'local-pending' });
-      }
-    },
-    webhook: {
-      postInternal: function (payload) {
-        return Promise.resolve({ ok: false, mode: 'local-pending' });
-      }
-    }
-  };
-
-  /* ---------------- HTTP adapters (used when URLs are configured) ---------------- */
-
-  function makeHttpAdapters(cfg) {
-    return {
-      leadCapture: {
-        submit: function (payload) {
-          if (!cfg.leadCaptureUrl) return localAdapters.leadCapture.submit(payload);
-          return postJson(cfg.leadCaptureUrl, payload, cfg.requestTimeoutMs)
-            .then(function (res) { return Object.assign({ ok: true, mode: 'remote' }, res); })
-            .catch(function () { return localAdapters.leadCapture.submit(payload); });
-        }
-      },
-      email: {
-        sendUserReport: function (payload) {
-          if (!cfg.emailServiceUrl) return localAdapters.email.sendUserReport(payload);
-          return postJson(cfg.emailServiceUrl, {
-            type: 'user_report',
-            payload: payload
-          }, cfg.requestTimeoutMs)
-            .then(function () { return { ok: true, mode: 'remote' }; })
-            .catch(function () { return { ok: false, mode: 'remote-error' }; });
-        },
-        sendBrokerShare: function (payload) {
-          if (!cfg.emailServiceUrl) return localAdapters.email.sendBrokerShare(payload);
-          if (!(payload.lead && payload.lead.share && payload.lead.share.enabled)) {
-            return Promise.resolve({ ok: true, mode: 'skipped' });
-          }
-          return postJson(cfg.emailServiceUrl, {
-            type: 'broker_share',
-            payload: payload
-          }, cfg.requestTimeoutMs)
-            .then(function () { return { ok: true, mode: 'remote' }; })
-            .catch(function () { return { ok: false, mode: 'remote-error' }; });
-        }
-      },
-      webhook: {
-        postInternal: function (payload) {
-          if (!cfg.internalWebhookUrl) return localAdapters.webhook.postInternal(payload);
-          return postJson(cfg.internalWebhookUrl, payload, cfg.requestTimeoutMs)
-            .then(function () { return { ok: true, mode: 'remote' }; })
-            .catch(function () { return { ok: false, mode: 'remote-error' }; });
-        }
-      }
+    var leads = readStore(STORAGE_KEYS.leads);
+    leads[payload.report.report_id] = {
+      lead: payload.lead,
+      share: payload.share,
+      report_id: payload.report.report_id,
+      created_at: payload.report.created_at,
+      overall_score: payload.report.overall_score,
+      readiness_band: payload.report.readiness_band,
+      recommended_path: payload.report.recommended_path,
+      profile_tags: payload.report.profile_tags,
+      lead_segment: null, // intentional: not in public contract
+      source: 'bank-ready-score'
     };
+    writeStore(STORAGE_KEYS.leads, leads);
+
+    writeStore(STORAGE_KEYS.last, {
+      report_id: payload.report.report_id,
+      submitted_at: new Date().toISOString(),
+      mode: 'mock'
+    });
   }
 
-  /* ---------------- Orchestrator ---------------- */
+  function readLocalReport(reportId) {
+    var store = readStore(STORAGE_KEYS.records);
+    return store[reportId] || null;
+  }
+
+  /* ---------------- Submit orchestrator ---------------- */
 
   function submitReport(payload) {
     var cfg = getConfig();
-    var adapters = makeHttpAdapters(cfg);
+    // Inject resolved report_url into meta before any transport sees it.
+    var reportUrl = buildReportUrl(payload, cfg);
+    payload.meta = Object.assign({}, payload.meta || {}, { report_url: reportUrl });
 
-    var share = payload.lead && payload.lead.share;
-    var wantsBrokerShare = !!(share && share.enabled && share.broker_email && share.consent_share);
-
-    var p = {
-      leadCapture: adapters.leadCapture.submit(payload),
-      userEmail: adapters.email.sendUserReport(payload),
-      brokerEmail: wantsBrokerShare ? adapters.email.sendBrokerShare(payload) : Promise.resolve({ ok: true, mode: 'skipped' }),
-      internal: adapters.webhook.postInternal(payload)
-    };
-
-    return Promise.all([p.leadCapture, p.userEmail, p.brokerEmail, p.internal])
-      .then(function (results) {
-        return {
-          ok: true,
-          leadCapture: results[0],
-          userEmail: results[1],
-          brokerEmail: results[2],
-          internal: results[3],
-          reportUrl: buildReportUrl(payload, cfg),
-          config: { hasBackend: !!cfg.leadCaptureUrl || !!cfg.emailServiceUrl }
-        };
-      });
-  }
-
-  /* Shareable URL. Backend-owned when configured (usually
-     `/report.html?id=...`); fallback embeds the payload in the hash
-     for cross-device viewing when no backend is present. */
-  function buildReportUrl(payload, cfg) {
-    var base = cfg.reportViewerUrl || '/report.html';
-    if (cfg.leadCaptureUrl) {
-      // Backend is authoritative — let it resolve by id.
-      return base + '?id=' + encodeURIComponent(payload.report_id);
+    if (cfg.mode === 'live' && cfg.submitUrl) {
+      return postJson(cfg.submitUrl, payload, cfg.requestTimeoutMs)
+        .then(function (res) { return normaliseSubmitResponse(res, payload, cfg, 'live'); })
+        .catch(function () {
+          // Graceful live→mock fallback so the UI never breaks mid-submit.
+          return mockSubmit(payload, cfg);
+        });
     }
-    var encoded = encodePayloadForUrl(payload);
-    return base + '#r=' + encoded;
+    return mockSubmit(payload, cfg);
   }
 
-  function encodePayloadForUrl(payload) {
-    // Strip PII from shareable URL so the same link can be sent to a
-    // broker without leaking the lead's contact details.
-    var copy = Object.assign({}, payload);
-    copy.lead = {
-      first_name: payload.lead && payload.lead.first_name || '',
-      business_name: payload.lead && payload.lead.business_name || '',
-      share: payload.lead && payload.lead.share && payload.lead.share.enabled ? { enabled: true } : { enabled: false }
+  function mockSubmit(payload, cfg) {
+    persistMockSubmit(payload);
+    var wantsShare = !!(payload.share && payload.share.enabled && payload.share.recipient_email && payload.share.consent_confirmed);
+    var response = {
+      success: true,
+      mode: 'mock',
+      report: {
+        reportId:   payload.report.report_id,
+        reportUrl:  buildReportUrl(payload, cfg || getConfig()),
+        reportPath: null,
+        expiresAt:  null
+      },
+      deliveries: {
+        userEmail: { queued: true, sent: false, email: payload.lead.email },
+        internalNotification: { queued: true, sent: false }
+      },
+      unsubscribeUrlTemplate: null,
+      message: 'Stored locally. Live delivery will happen once a backend is configured.'
     };
-    var json = JSON.stringify(copy);
+    if (wantsShare) {
+      response.deliveries.recipientEmail = {
+        queued: true, sent: false, email: payload.share.recipient_email
+      };
+    }
+    return Promise.resolve(response);
+  }
+
+  /* Backend shape hygiene: guarantee the UI sees a consistent envelope
+     even if the live endpoint returns partial fields. */
+  function normaliseSubmitResponse(res, payload, cfg, mode) {
+    var reportId  = (res.report && res.report.reportId)  || payload.report.report_id;
+    var reportUrl = (res.report && res.report.reportUrl) || buildReportUrl(payload, cfg);
+    return {
+      success: res.success !== false,
+      mode: res.mode || mode,
+      report: {
+        reportId:   reportId,
+        reportUrl:  reportUrl,
+        reportPath: (res.report && res.report.reportPath) || null,
+        expiresAt:  (res.report && res.report.expiresAt)  || null
+      },
+      deliveries: res.deliveries || {
+        userEmail: { queued: true, email: payload.lead.email },
+        internalNotification: { queued: true }
+      },
+      unsubscribeUrlTemplate: res.unsubscribeUrlTemplate || null,
+      message: res.message || null
+    };
+  }
+
+  /* ---------------- Report URL builder + resolver ---------------- */
+
+  /* Canonical report URL:
+       mock mode → hash-encoded payload (4KB-ish, safe to share)
+       live mode → id-based link resolved server-side
+     Renderer is URL-strategy-agnostic (see score.report.view.js). */
+  function buildReportUrl(payload, cfg) {
+    cfg = cfg || getConfig();
+    var base = cfg.reportViewerUrl;
+    if (cfg.mode === 'live') {
+      return base + '?id=' + encodeURIComponent(payload.report.report_id);
+    }
+    return base + '#r=' + encodePayloadForUrl(payload);
+  }
+
+  /* The hash-encoded payload carries only what the viewer needs to
+     render the report. PII (email, mobile, share contact details,
+     follow-up consent, meta.user_agent) is stripped so the same URL
+     is safe to hand to a broker. */
+  function encodePayloadForUrl(payload) {
+    var slim = {
+      report: payload.report,
+      lead: {
+        first_name:    (payload.lead && payload.lead.first_name) || '',
+        business_name: (payload.lead && payload.lead.business_name) || ''
+      },
+      share: payload.share && payload.share.enabled
+        ? { enabled: true, recipient_type: payload.share.recipient_type || 'broker' }
+        : { enabled: false }
+    };
+    var json = JSON.stringify(slim);
     try {
       return encodeURIComponent(btoa(unescape(encodeURIComponent(json))));
     } catch (e) {
@@ -226,23 +260,45 @@
     try {
       var raw = decodeURIComponent(encoded);
       var json;
-      try {
-        json = decodeURIComponent(escape(atob(raw)));
-      } catch (e) {
-        json = raw;
-      }
+      try { json = decodeURIComponent(escape(atob(raw))); }
+      catch (e) { json = raw; }
       return JSON.parse(json);
-    } catch (e) {
-      return null;
-    }
+    } catch (e) { return null; }
   }
 
+  /* Viewer-side helper: given a report id, fetch the canonical payload.
+     Live mode → GET resolver; mock mode → localStorage lookup. */
+  function resolveReportById(reportId) {
+    var cfg = getConfig();
+    if (cfg.mode === 'live' && cfg.getReportUrl) {
+      return getJson(joinUrl(cfg.getReportUrl, encodeURIComponent(reportId)), cfg.requestTimeoutMs)
+        .then(function (res) {
+          // Expected shape: { success, report, leadSummary?, shareSummary? }
+          if (res && res.success && res.report) {
+            return {
+              report: res.report,
+              lead: res.leadSummary
+                ? { first_name: res.leadSummary.firstName || '', business_name: res.leadSummary.businessName || '' }
+                : { first_name: '', business_name: '' },
+              share: res.shareSummary || { enabled: false }
+            };
+          }
+          return null;
+        })
+        .catch(function () { return readLocalReport(reportId); });
+    }
+    return Promise.resolve(readLocalReport(reportId));
+  }
+
+  /* ---------------- Public surface ---------------- */
+
   window.OneyReportPlatform = {
-    submit: submitReport,
-    buildReportUrl: buildReportUrl,
-    encodePayloadForUrl: encodePayloadForUrl,
+    submit:               submitReport,
+    buildReportUrl:       buildReportUrl,
+    encodePayloadForUrl:  encodePayloadForUrl,
     decodePayloadFromUrl: decodePayloadFromUrl,
-    _local: localAdapters,
-    _config: getConfig
+    resolveReportById:    resolveReportById,
+    _config:              getConfig,
+    _storageKeys:         STORAGE_KEYS
   };
 })();
