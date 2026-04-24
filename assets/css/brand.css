@@ -107,21 +107,25 @@ body > * { position: relative; z-index: 1; }
 .nav-logo-icon {
   width: 30px;
   height: 30px;
-  border-radius: 50%;
-  padding: 3px;
-  background: conic-gradient(from 180deg at 50% 50%, #2ecc85 0deg, #6b4c9a 220deg, #2ecc85 360deg);
+  padding: 0;
+  border-radius: 0;
+  background: url('/assets/svg/oney-icon.svg') center/contain no-repeat;
+  filter: drop-shadow(0 0 8px rgba(109,94,245,0.30)) drop-shadow(0 0 18px rgba(37,99,235,0.14));
 }
 .nav-logo-icon-inner {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: var(--bg);
+  display: none;
 }
 .nav-logo-text {
   font-size: 19px;
   font-weight: 600;
   color: #fff;
   letter-spacing: -0.5px;
+}
+.nav-logo-text::after {
+  content: '.';
+  color: #6D5EF5;
+  font-weight: 700;
+  margin-left: 1px;
 }
 .nav-logo-text .amp {
   background: linear-gradient(135deg, #2ecc85, #6b4c9a);
@@ -276,21 +280,25 @@ body > * { position: relative; z-index: 1; }
 .footer-logo-icon {
   width: 26px;
   height: 26px;
-  border-radius: 50%;
-  padding: 3px;
-  background: conic-gradient(from 180deg at 50% 50%, #2ecc85 0deg, #6b4c9a 220deg, #2ecc85 360deg);
+  padding: 0;
+  border-radius: 0;
+  background: url('/assets/svg/oney-icon.svg') center/contain no-repeat;
+  filter: drop-shadow(0 0 8px rgba(109,94,245,0.28)) drop-shadow(0 0 16px rgba(37,99,235,0.12));
 }
 .footer-logo-icon-inner {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: var(--bg);
+  display: none;
 }
 .footer-logo-text {
   font-size: 16px;
   font-weight: 600;
   color: var(--text);
   letter-spacing: -0.4px;
+}
+.footer-logo-text::after {
+  content: '.';
+  color: #6D5EF5;
+  font-weight: 700;
+  margin-left: 1px;
 }
 .footer-logo-text .amp {
   background: linear-gradient(135deg, #2ecc85, #6b4c9a);
