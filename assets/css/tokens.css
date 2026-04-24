@@ -1,0 +1,95 @@
+/* =============================================================
+   Oney & Co. — Global Design Tokens
+   Non-breaking additions using --oney-* namespace. Coexists with
+   any existing `--purple` / `--green` / `--bg` brand vars.
+   ============================================================= */
+
+:root {
+  /* ---------- Brand: preserved existing values ---------- */
+  --oney-purple:          #6B4C9A;
+  --oney-purple-light:    #9B59B6;
+  --oney-purple-soft:     #B59BD6;
+  --oney-purple-lighter:  #B08AE0;
+  --oney-purple-pale:     #C4A3F0;
+  --oney-purple-glow:     rgba(107, 76, 154, 0.18);
+
+  --oney-green:           #2ECC85;
+  --oney-green-dark:      #1FAD73;
+  --oney-green-deep:      #178A5C;
+  --oney-green-soft:      #7AD9A8;
+  --oney-green-glow:      rgba(46, 204, 133, 0.15);
+
+  --oney-bg-dark:         #0A0A0A;
+  --oney-bg-dark-navy:    #1A1A2E;
+  --oney-bg-dark-purple:  #1A1228;
+  --oney-bg-dark-deep:    #0D0D1A;
+  --oney-bg-dark-deeper:  #0A0A15;
+  --oney-surface-dark:    #252540;
+  --oney-surface-dark-alt:#16162A;
+
+  --oney-text-on-dark:          #FFFFFF;
+  --oney-text-on-dark-strong:   rgba(255, 255, 255, 0.85);
+  --oney-text-on-dark-muted:    rgba(255, 255, 255, 0.55);
+  --oney-text-on-dark-faint:    rgba(255, 255, 255, 0.40);
+
+  /* ---------- Logo system ---------- */
+  --oney-logo-grad-start: #10B981;
+  --oney-logo-grad-mid:   #2563EB;
+  --oney-logo-grad-end:   #7C3AED;
+  --oney-logo-gradient:   linear-gradient(135deg,
+                            var(--oney-logo-grad-start) 0%,
+                            var(--oney-logo-grad-mid)   50%,
+                            var(--oney-logo-grad-end)   100%);
+  --oney-wordmark-dot:    #6D5EF5;
+
+  /* ---------- Gray scale ---------- */
+  --oney-gray-50:   #F9FAFB;
+  --oney-gray-100:  #F3F4F6;
+  --oney-gray-200:  #E5E7EB;
+  --oney-gray-400:  #9CA3AF;
+  --oney-gray-600:  #4B5563;
+  --oney-gray-800:  #1F2937;
+  --oney-gray-900:  #0B0F14;
+
+  /* ---------- Semantic states ---------- */
+  --oney-state-success:    #22C55E;
+  --oney-state-warn-soft:  #FBBF24;
+  --oney-state-warn:       #F59E0B;
+  --oney-state-error:      #EF4444;
+  --oney-state-info:       #3B82F6;
+
+  /* ---------- Typography ---------- */
+  --oney-font-sans: "Inter Tight", Inter, "Helvetica Neue", Arial, sans-serif;
+  --oney-weight-body:        400;
+  --oney-weight-body-med:    500;
+  --oney-weight-cta:         600;
+  --oney-weight-section:     600;
+  --oney-weight-section-alt: 650;
+  --oney-weight-page-title:  700;
+  --oney-weight-hero:        700;
+  --oney-weight-metric:      700;
+  --oney-tracking-tight:     -0.015em;
+  --oney-tracking-hero:      -0.02em;
+  --oney-line-body:          1.6;
+  --oney-line-heading:       1.15;
+
+  /* ---------- Motion ---------- */
+  --oney-ease-out:           cubic-bezier(0.16, 1, 0.3, 1);
+  --oney-ease-in-out:        cubic-bezier(0.4, 0, 0.2, 1);
+  --oney-dur-cta:            160ms;
+  --oney-dur-card:           200ms;
+  --oney-dur-progress:       1100ms;
+  --oney-dur-decision-dot:   300ms;
+  --oney-dur-ring-rotate:    7s;
+  --oney-dur-dot-pulse:      2s;
+
+  /* ---------- Radius + shadow ---------- */
+  --oney-radius-card:        18px;
+  --oney-radius-card-lg:     20px;
+  --oney-radius-button:      12px;
+  --oney-radius-pill:        100px;
+  --oney-shadow-card:        0 1px 2px rgba(0, 0, 0, 0.05),
+                             0 1px 3px rgba(0, 0, 0, 0.08);
+  --oney-shadow-cta-hover:   0 6px 20px rgba(0, 0, 0, 0.18);
+  --oney-shadow-lift:        0 12px 30px rgba(0, 0, 0, 0.15);
+}

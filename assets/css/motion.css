@@ -1,0 +1,89 @@
+/* =============================================================
+   Oney & Co. — Motion System. Restrained motion only.
+   ============================================================= */
+
+@keyframes oney-ring-rotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes oney-dot-pulse {
+  0%, 100% { opacity: 1;   transform: scale(1); }
+  50%      { opacity: 0.7; transform: scale(0.96); }
+}
+
+@keyframes oney-progress-fill {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+@keyframes oney-decision-dot-in {
+  from { opacity: 0; transform: scale(0.6); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.oney-ring--spin {
+  transform-origin: center;
+  animation: oney-ring-rotate var(--oney-dur-ring-rotate, 7s) linear infinite;
+}
+.oney-dot--pulse {
+  transform-origin: center;
+  animation: oney-dot-pulse var(--oney-dur-dot-pulse, 2s) ease-in-out infinite;
+}
+.oney-progress-fill {
+  transform-origin: left center;
+  animation: oney-progress-fill
+             var(--oney-dur-progress, 1100ms)
+             var(--oney-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) both;
+}
+.oney-decision-dot--in {
+  animation: oney-decision-dot-in
+             var(--oney-dur-decision-dot, 300ms)
+             var(--oney-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) both;
+}
+
+.oney-cta {
+  transition:
+    transform  var(--oney-dur-cta, 160ms) var(--oney-ease-out, ease-out),
+    box-shadow var(--oney-dur-cta, 160ms) var(--oney-ease-out, ease-out);
+}
+.oney-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--oney-shadow-cta-hover, 0 6px 20px rgba(0, 0, 0, 0.18));
+}
+.oney-cta__dot {
+  display: inline-block;
+  margin-left: 1px;
+  color: var(--oney-wordmark-dot, #6D5EF5);
+  transition: transform var(--oney-dur-cta, 160ms)
+                        var(--oney-ease-out, ease-out);
+}
+.oney-cta:hover .oney-cta__dot { transform: translateX(2px); }
+
+.oney-card {
+  transition:
+    transform  var(--oney-dur-card, 200ms) var(--oney-ease-out, ease-out),
+    box-shadow var(--oney-dur-card, 200ms) var(--oney-ease-out, ease-out);
+}
+.oney-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--oney-shadow-lift, 0 12px 30px rgba(0, 0, 0, 0.15));
+}
+
+/* Soft glow for the icon on dark backgrounds */
+.oney-icon--glow {
+  filter:
+    drop-shadow(0 0 8px  rgba(109, 94, 245, 0.30))
+    drop-shadow(0 0 18px rgba(37, 99, 235, 0.14));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .oney-ring--spin,
+  .oney-dot--pulse,
+  .oney-progress-fill,
+  .oney-decision-dot--in { animation: none !important; }
+
+  .oney-cta,
+  .oney-cta__dot,
+  .oney-card { transition: none !important; }
+}
