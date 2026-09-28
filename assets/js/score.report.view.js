@@ -41,8 +41,8 @@
   };
 
   var PATH_LABELS = {
-    approach_bank:              'Approach a lender with a well-prepared file',
-    broker_review:              'Seek broker-led review before application',
+    approach_bank:              'Prepare for lender review with a well-supported file',
+    broker_review:              'Seek further review before application',
     improve_first:              'Improve key gaps before application',
     improve_before_application: 'Improve before application'
   };

@@ -554,12 +554,12 @@
 
     card.appendChild(el('p', {
       class: 'result-actions-hint',
-      text: 'Email yourself a clear lending summary, or send it to your broker or lender for review.'
+      text: 'Email yourself a clear lending summary, or share it with an independent qualified professional or lender for review.'
     }));
 
     card.appendChild(el('p', {
       class: 'result-disclaimer',
-      text: 'This is a readiness signal, not credit approval or financial advice. It points at the likely gaps before a lender sees them — a qualified broker or commercial banker can confirm the exact next step for your situation.'
+      text: 'This is a readiness signal, not credit approval or financial advice. It points at the likely gaps before a lender sees them — a qualified independent professional or lender can review your full circumstances before you act.'
     }));
 
     return card;
