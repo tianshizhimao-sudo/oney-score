@@ -492,7 +492,7 @@
     body.textContent = this.result.band === 'strong'
       ? 'Your answers suggest a bank-ready file. Make sure the paper trail matches the story before you lodge.'
       : this.result.band === 'borderline'
-        ? 'You are close. A broker-led polish on the weakest dimensions usually unlocks better outcomes than walking in cold.'
+        ? 'You are close. Review the weakest dimensions before applying; better evidence and preparation may materially change how the file is assessed.'
         : 'A direct bank approach today would likely struggle. Fix the top 1–2 weak areas first — that is where most of the points come back.';
     var tip = document.createElement('div');
     tip.className = 'support-tip';
