@@ -81,7 +81,7 @@
   }
 
   function nextStepForBand(band) {
-    if (band === 'strong') return 'Approach the bank now';
+    if (band === 'strong') return 'Prepare for lender review';
     if (band === 'borderline') return 'Further review before application';
     return 'Improve before application';
   }
