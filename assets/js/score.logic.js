@@ -82,7 +82,7 @@
 
   function nextStepForBand(band) {
     if (band === 'strong') return 'Approach the bank now';
-    if (band === 'borderline') return 'Broker-led polish first';
+    if (band === 'borderline') return 'Further review before application';
     return 'Improve before application';
   }
 
