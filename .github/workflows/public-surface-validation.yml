@@ -1,0 +1,50 @@
+name: Oney Public Surface Validation
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate JavaScript syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            node --check "$file"
+          done < <(find . -type f -name '*.js' -not -path './node_modules/*' -print0)
+      - name: Validate HTML structure
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re, sys
+          bad=[]
+          for p in Path('.').rglob('*.html'):
+              s=p.read_text(encoding='utf-8',errors='ignore')
+              if '<html' not in s.lower() or '</html>' not in s.lower():
+                  bad.append(f'{p}: missing html root')
+              if re.search(r'<<<<<<<|=======|>>>>>>>', s):
+                  bad.append(f'{p}: merge conflict marker')
+          if bad:
+              print('\n'.join(bad))
+              sys.exit(1)
+          print('HTML structure checks passed')
+          PY
+      - name: Guard against merge conflict markers
+        shell: bash
+        run: |
+          if grep -RInE '^(<<<<<<<|=======|>>>>>>>)' . --exclude-dir=.git --exclude='*.md'; then
+            echo 'Merge conflict markers found'
+            exit 1
+          fi
