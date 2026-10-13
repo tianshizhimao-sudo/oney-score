@@ -20,7 +20,6 @@
   position: relative;
   overflow: hidden;
 }
-html[data-theme="light"] .result-hero-card { background: #fff; }
 .result-hero-card::before {
   content: '';
   position: absolute;
@@ -28,10 +27,6 @@ html[data-theme="light"] .result-hero-card { background: #fff; }
   background: radial-gradient(circle at top right, rgba(107, 76, 154, 0.18), transparent 45%),
               radial-gradient(circle at bottom left, rgba(46, 204, 133, 0.12), transparent 40%);
   pointer-events: none;
-}
-html[data-theme="light"] .result-hero-card::before {
-  background: radial-gradient(circle at top right, rgba(107, 76, 154, 0.05), transparent 40%),
-              radial-gradient(circle at bottom left, rgba(31, 173, 115, 0.06), transparent 40%);
 }
 .result-hero-copy {
   position: relative;
@@ -62,18 +57,6 @@ html[data-theme="light"] .result-hero-card::before {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   line-height: 1;
-}
-html[data-theme="light"] .result-score .score-value {
-  background: linear-gradient(135deg, var(--text), var(--accent-dark), var(--purple));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-html[data-theme="purple"] .result-score .score-value {
-  background: linear-gradient(135deg, #fff, var(--purple-light));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 .result-score .score-out-of {
   font-size: 18px;
@@ -139,20 +122,13 @@ html[data-theme="purple"] .result-score .score-value {
   flex-shrink: 0;
   box-shadow: 0 10px 32px rgba(0, 0, 0, 0.3);
 }
-html[data-theme="light"] .result-dial {
-  background: var(--accent-dark);
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
-}
 /* Real conic-gradient dial — placed last so it wins in supporting browsers. */
 @supports (background: conic-gradient(red 0deg, blue 0deg)) {
   .result-dial {
     background:
       conic-gradient(var(--accent) var(--dial-pct, 0deg), rgba(255, 255, 255, 0.08) 0);
   }
-  html[data-theme="light"] .result-dial {
-    background: conic-gradient(var(--accent-dark) var(--dial-pct, 0deg), rgba(15, 23, 42, 0.08) 0);
   }
-}
 .result-dial::after {
   content: '';
   position: absolute;
@@ -160,7 +136,6 @@ html[data-theme="light"] .result-dial {
   background: var(--card-solid);
   border-radius: 50%;
 }
-html[data-theme="light"] .result-dial::after { background: #fff; }
 .result-dial-label {
   position: relative;
   z-index: 1;
@@ -198,7 +173,6 @@ html[data-theme="light"] .result-dial::after { background: #fff; }
   gap: 8px;
   box-shadow: var(--shadow-md);
 }
-html[data-theme="light"] .criteria-card { background: #fff; }
 .criteria-card .criteria-label {
   font-size: 12px;
   text-transform: uppercase;
@@ -230,7 +204,6 @@ html[data-theme="light"] .criteria-card { background: #fff; }
   background: rgba(255, 255, 255, 0.08);
   overflow: hidden;
 }
-html[data-theme="light"] .criteria-bar { background: rgba(15, 23, 42, 0.08); }
 .criteria-bar-fill {
   height: 100%;
   border-radius: inherit;
@@ -251,7 +224,6 @@ html[data-theme="light"] .criteria-bar { background: rgba(15, 23, 42, 0.08); }
   padding: 28px;
   box-shadow: var(--shadow-lg);
 }
-html[data-theme="light"] .roadmap-card { background: #fff; }
 .roadmap-card h2 {
   font-size: 20px;
   font-weight: 700;
@@ -281,7 +253,6 @@ html[data-theme="light"] .roadmap-card { background: #fff; }
   border: 1px solid var(--border);
   background: rgba(255, 255, 255, 0.03);
 }
-html[data-theme="light"] .roadmap-list li { background: #f8fafc; }
 .roadmap-list li::before {
   content: counter(roadmap);
   width: 28px;
@@ -337,7 +308,6 @@ html[data-theme="light"] .roadmap-list li { background: #f8fafc; }
   padding: 24px 28px;
   box-shadow: var(--shadow-md);
 }
-html[data-theme="light"] .profile-card { background: #fff; }
 .profile-card h2 {
   font-size: 20px;
   font-weight: 700;
@@ -362,7 +332,6 @@ html[data-theme="light"] .profile-card { background: #fff; }
   background: rgba(255, 255, 255, 0.04);
   color: var(--text-secondary);
 }
-html[data-theme="light"] .profile-tag { background: #f8fafc; }
 .profile-tag-risk {
   color: #e87878;
   border-color: rgba(232, 76, 61, 0.35);
@@ -420,4 +389,24 @@ html[data-theme="light"] .profile-tag { background: #f8fafc; }
     width: 100%;
     justify-content: center;
   }
+}
+/* V2.1: restrained surfaces and independent readiness status colours. */
+:root .result-hero-card,:root .criteria-card,:root .roadmap-card,:root .profile-card { background: var(--card); backdrop-filter: none; -webkit-backdrop-filter: none; }
+:root .result-hero-card::before { display: none; }
+:root .result-score .score-value { background: none; color: var(--text); -webkit-text-fill-color: currentColor; }
+:root .readiness-strong,:root .profile-tag-positive { color: var(--success); }
+:root .readiness-borderline,:root .profile-tag-mixed { color: var(--warning); }
+:root .readiness-needs-work,:root .profile-tag-risk { color: var(--error); }
+:root .readiness-badge::before { background: currentColor; box-shadow: none; }
+:root .criteria-bar { background: var(--border); }
+:root .criteria-bar-fill { background: var(--accent); }
+:root .criteria-card.is-strong .criteria-bar-fill { background: var(--success); }
+:root .criteria-card.is-weak .criteria-bar-fill { background: var(--error); }
+:root .roadmap-list li,:root .profile-tag { background: var(--bg-secondary); }
+:root .roadmap-list li::before { background: #6452DB; color: #fff; }
+:root .result-dial { box-shadow: var(--shadow-md); }
+:root .result-dial::after { background: var(--card-solid); }
+
+@supports (background: conic-gradient(red 0deg, blue 0deg)) {
+  :root .result-dial { background: conic-gradient(var(--accent) var(--dial-pct, 0deg), var(--border) 0); }
 }
