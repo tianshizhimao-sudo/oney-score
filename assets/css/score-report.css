@@ -47,9 +47,6 @@
   background: rgba(46, 204, 133, 0.08);
   border-radius: var(--radius-lg);
 }
-html[data-theme="light"] .result-actions-success {
-  background: rgba(31, 173, 115, 0.08);
-}
 .result-success-banner {
   display: flex;
   gap: 14px;
@@ -103,9 +100,6 @@ html[data-theme="light"] .result-actions-success {
   opacity: 0;
   transition: opacity 0.18s ease;
 }
-html[data-theme="light"] .report-modal-backdrop {
-  background: rgba(15, 23, 42, 0.48);
-}
 .report-modal-backdrop.is-open { opacity: 1; }
 
 .report-modal-sheet {
@@ -122,7 +116,6 @@ html[data-theme="light"] .report-modal-backdrop {
   transform: translateY(12px);
   transition: transform 0.22s ease;
 }
-html[data-theme="light"] .report-modal-sheet { background: #fff; }
 .report-modal-backdrop.is-open .report-modal-sheet { transform: translateY(0); }
 
 .report-modal-close {
@@ -195,10 +188,6 @@ html[data-theme="light"] .report-modal-sheet { background: #fff; }
   font-size: 14px;
   transition: border-color 0.18s ease, background 0.18s ease;
 }
-html[data-theme="light"] .report-input {
-  background: #fff;
-  color: var(--text);
-}
 .report-input::placeholder { color: var(--text-muted); }
 .report-input:hover { border-color: var(--border-strong); }
 .report-input:focus {
@@ -225,7 +214,6 @@ html[data-theme="light"] .report-input {
   border: 1px solid var(--border);
   background: rgba(255, 255, 255, 0.02);
 }
-html[data-theme="light"] .report-checkbox { background: #f8fafc; }
 .report-checkbox:hover { border-color: var(--border-strong); }
 .report-checkbox-input {
   margin: 3px 0 0 0;
@@ -247,9 +235,6 @@ html[data-theme="light"] .report-checkbox { background: #f8fafc; }
   border-radius: var(--radius-md);
   border: 1px dashed var(--border);
   background: rgba(107, 76, 154, 0.06);
-}
-html[data-theme="light"] .report-share-block {
-  background: rgba(107, 76, 154, 0.04);
 }
 .report-share-block[hidden] { display: none !important; }
 
@@ -597,4 +582,45 @@ html[data-theme="light"] .report-share-block {
   .report-doc-score-number { font-size: 42px; }
   .report-doc-dim-grid { grid-template-columns: 1fr; }
   .report-doc-header h1 { font-size: 22px; }
+}
+/* V2.1 modal and screen chrome. The report sheet remains a light document. */
+:root .report-modal-backdrop { backdrop-filter: none; -webkit-backdrop-filter: none; }
+:root .report-modal-sheet { background: var(--card-solid); box-shadow: var(--shadow-lg); }
+:root .report-modal-close { width: 44px; height: 44px; }
+:root .report-modal-header { padding-right: 38px; }
+:root .report-input { background: var(--card); border-color: var(--border-strong); }
+:root .report-input:focus { background: var(--accent-soft); outline: 2px solid var(--accent); outline-offset: 2px; }
+:root .report-field.is-invalid .report-input { border-color: var(--error); }
+:root .report-field-error,:root .report-form-error { color: var(--error); }
+:root .report-checkbox { background: var(--bg-secondary); }
+:root .report-success-tick,:root .result-success-tick { background: #157347; color: #fff; }
+:root .report-modal-backdrop .btn-link { min-height: 44px; }
+:root .report-doc-body { background: var(--bg); color: var(--text); }
+:root .report-doc-nav { background: var(--bg); border-color: var(--border); }
+:root .report-doc-nav .nav-logo-text { color: var(--text); }
+:root .report-doc-nav .nav-logo-text .amp { background: none; -webkit-text-fill-color: currentColor; }
+:root .report-doc { background: #fff; color: #18201D; color-scheme: light; }
+:root .report-doc-dim-bar-fill { background: #6452DB; }
+:root .report-doc-dim.is-strong .report-doc-dim-bar-fill { background: #157347; }
+:root .report-doc-dim.is-weak .report-doc-dim-bar-fill { background: #B42332; }
+:root .report-doc .report-doc-cta-btn { background: #6452DB; color: #fff !important; }
+:root .report-doc .report-doc-cta-btn:hover { background: #5341BF; }
+@media (max-width: 768px) {
+  .report-doc-nav .nav-inner { flex-wrap: wrap; }
+  .report-doc-nav .nav-right { flex-wrap: wrap; }
+  .report-doc-nav .btn-purple,.report-doc-nav .btn-ghost { padding: 10px 12px; font-size: 13px; }
+}
+/* Last in the cascade: printing never inherits the dark screen chrome.
+   Summary text stays readable even when background printing is disabled. */
+@media print {
+  :root { color-scheme: light; }
+  :root .oney-nav,:root .report-modal-backdrop { display: none !important; }
+  :root .report-doc-body,:root .report-doc { background: #fff !important; color: #18201D !important; }
+  :root .report-doc-main { padding: 0; max-width: none; }
+  :root .report-doc { border: 0; box-shadow: none; border-radius: 0; padding: 28px 0; }
+  :root .report-doc-summary { background: #fff; color: #18201D; border: 1px solid #D8DEDA; }
+  :root .report-doc-summary * { color: #18201D; }
+  :root .report-doc .report-doc-cta-btn,:root .report-doc .report-doc-cta-btn:hover { background: transparent; color: #18201D !important; padding: 0; }
+  :root .report-doc-section,:root .report-doc-cta { break-inside: avoid; }
+  :root .report-doc a { color: inherit !important; text-decoration: none; }
 }

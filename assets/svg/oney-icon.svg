@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" fill="none" role="img" aria-label="Oney">
+  <defs>
+    <linearGradient id="oneyIconGradient" x1="30" y1="150" x2="150" y2="30" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#10B981"/>
+      <stop offset="50%" stop-color="#2563EB"/>
+      <stop offset="100%" stop-color="#7C3AED"/>
+    </linearGradient>
+  </defs>
+  <path d="M 126 34 A 62 62 0 1 0 142 118"
+        stroke="url(#oneyIconGradient)"
+        stroke-width="22"
+        stroke-linecap="round"
+        fill="none"/>
+  <circle cx="96" cy="90" r="16" fill="url(#oneyIconGradient)"/>
+</svg>
